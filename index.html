@@ -163,16 +163,52 @@ h1,h2,h3,.syne{font-family:'Inter',sans-serif;}
 .mode-btn .mb-desc{font-size:11px;color:var(--text2);}
 
 /* CATEGORY CHIPS */
-.cat-chips{display:flex;flex-wrap:wrap;gap:7px;}
-.cat-chip{
-  padding:6px 13px;border-radius:20px;
-  font-size:12px;font-weight:500;
-  border:1.5px solid var(--border2);
-  background:var(--bg3);color:var(--text2);
-  cursor:pointer;transition:all .15s;
+/* Category checklist — compact, scrollable */
+.cat-list-hdr{
+  display:flex;align-items:center;gap:10px;
+  margin:6px 0 6px;font-size:11px;color:var(--text3);
 }
-.cat-chip:hover{border-color:var(--text2);}
-.cat-chip.active{border-color:var(--gold);background:rgba(212,168,67,0.1);color:var(--gold);}
+.cat-list-count{flex:1;}
+.cat-link{
+  background:none;border:none;color:var(--gold);
+  font-size:11px;cursor:pointer;padding:2px 6px;border-radius:4px;
+  font-family:inherit;
+}
+.cat-link:hover{background:rgba(212,168,67,0.1);}
+.cat-list{
+  max-height:200px;overflow-y:auto;
+  border:1px solid var(--border2);
+  border-radius:8px;
+  background:var(--bg3);
+  padding:4px;
+}
+.cat-list::-webkit-scrollbar{width:8px;}
+.cat-list::-webkit-scrollbar-track{background:transparent;}
+.cat-list::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px;}
+.cat-row{
+  display:flex;align-items:center;gap:10px;
+  padding:7px 10px;border-radius:6px;
+  cursor:pointer;user-select:none;
+  font-size:13px;color:var(--text2);
+  transition:background .12s;
+}
+.cat-row:hover{background:rgba(255,255,255,0.04);}
+.cat-row input[type=checkbox]{
+  margin:0;width:16px;height:16px;
+  accent-color:var(--gold);cursor:pointer;
+  flex-shrink:0;
+}
+.cat-row.checked{color:var(--text);}
+.cat-name{flex:1;}
+.cat-count{
+  font-size:11px;color:var(--text3);
+  background:rgba(255,255,255,0.05);
+  padding:1px 7px;border-radius:10px;
+  min-width:24px;text-align:center;
+}
+.cat-row.checked .cat-count{
+  background:rgba(212,168,67,0.15);color:var(--gold);
+}
 
 /* WORD COUNT PILLS */
 .count-pills{display:flex;gap:8px;}
@@ -693,8 +729,13 @@ h1,h2,h3,.syne{font-family:'Inter',sans-serif;}
     </div>
 
     <div class="config-section">
-      <div class="config-label">Category <span style="font-size:10px;color:var(--text3);font-weight:400;text-transform:none">(tap to toggle)</span></div>
-      <div class="cat-chips" id="catChips"></div>
+      <div class="config-label">Category</div>
+      <div class="cat-list-hdr">
+        <span class="cat-list-count" id="catListCount">All selected</span>
+        <button class="cat-link" onclick="catsAll()">All</button>
+        <button class="cat-link" onclick="catsNone()">None</button>
+      </div>
+      <div class="cat-list" id="catChips"></div>
     </div>
 
     <div class="config-section">
@@ -2064,26 +2105,64 @@ function selectMode(mode, el) {
 }
 
 function buildCatChips(wordPool) {
-  const cats = [...new Set(wordPool.map(w => w.cat))];
+  // Counts per category, defensively filtering empty/whitespace cat values.
+  const counts = {};
+  wordPool.forEach(w => {
+    const c = (w.cat || '').trim();
+    if (!c) return;
+    counts[c] = (counts[c] || 0) + 1;
+  });
+  const cats = Object.keys(counts).sort();
   S.selectedCats = [...cats];
-  const chips = document.getElementById('catChips');
-  chips.innerHTML = '';
+
+  const list = document.getElementById('catChips');
+  list.innerHTML = '';
   cats.forEach(cat => {
-    const el = document.createElement('div');
-    el.className = 'cat-chip active';
-    el.textContent = cat;
-    el.dataset.cat = cat;
-    el.onclick = () => {
-      if (S.selectedCats.includes(cat)) {
-        if (S.selectedCats.length === 1) return;
-        S.selectedCats = S.selectedCats.filter(c => c !== cat);
-        el.classList.remove('active');
+    const row = document.createElement('label');
+    row.className = 'cat-row checked';
+    row.dataset.cat = cat;
+    row.innerHTML =
+      '<input type="checkbox" checked>' +
+      '<span class="cat-name"></span>' +
+      '<span class="cat-count">' + counts[cat] + '</span>';
+    row.querySelector('.cat-name').textContent = cat;
+    const cb = row.querySelector('input');
+    cb.onchange = () => {
+      if (cb.checked) {
+        if (!S.selectedCats.includes(cat)) S.selectedCats.push(cat);
+        row.classList.add('checked');
       } else {
-        S.selectedCats.push(cat);
-        el.classList.add('active');
+        // Allow zero-selected; startSession will guard against empty queue.
+        S.selectedCats = S.selectedCats.filter(c => c !== cat);
+        row.classList.remove('checked');
       }
+      updateCatCount();
     };
-    chips.appendChild(el);
+    list.appendChild(row);
+  });
+  updateCatCount();
+}
+
+function updateCatCount() {
+  const el = document.getElementById('catListCount');
+  if (!el) return;
+  const total = document.querySelectorAll('#catChips .cat-row').length;
+  const sel   = S.selectedCats.length;
+  if (sel === 0)            el.textContent = 'None selected';
+  else if (sel === total)   el.textContent = 'All selected';
+  else                      el.textContent = sel + ' of ' + total + ' selected';
+}
+
+function catsAll() {
+  document.querySelectorAll('#catChips .cat-row').forEach(row => {
+    const cb = row.querySelector('input');
+    if (!cb.checked) { cb.checked = true; cb.onchange(); }
+  });
+}
+function catsNone() {
+  document.querySelectorAll('#catChips .cat-row').forEach(row => {
+    const cb = row.querySelector('input');
+    if (cb.checked) { cb.checked = false; cb.onchange(); }
   });
 }
 
@@ -2123,6 +2202,10 @@ function shuffle(a) {
 }
 
 function startSession() {
+  if (!S.selectedCats || S.selectedCats.length === 0) {
+    showToast('Pick at least one category');
+    return;
+  }
   const filtered = WORDS.filter(w => S.selectedCats.includes(w.cat));
   S.queue = shuffle(filtered).slice(0, S.count);
   S.idx = 0; S.correct = 0; S.streak = 0;
