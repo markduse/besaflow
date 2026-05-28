@@ -1,0 +1,22 @@
+# Local-only working files — not deployed, not committed
+
+# Backup folder from migration — redundant once audio/ is externalized
+audio_backup/
+
+# Private reference / source material
+reference-audio/
+source/
+
+# Bulky reference art — only eagle.png is load-bearing
+assets/*
+!assets/eagle.png
+
+# Pre-externalization backups of index.html
+index.html.bak-*
+
+# Migration handoff — contains an API key until Stage 0a key rotation is done. Never commit.
+HANDOFF.md
+
+# Editor / OS
+.claude/
+.DS_Store

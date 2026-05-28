@@ -4,11 +4,17 @@
 BesaFlow is a single-file HTML/JS/CSS Albanian language learning app focused on the **Gheg dialect** (Malsor/Kosovo variant). Live at besaflow.netlify.app.
 
 ## Architecture — CRITICAL
-- **Single file app**: Everything lives in `index.html` — HTML, CSS, JS, base64 images + audio
+- **Code lives in `index.html`** — HTML, CSS, JS all in one file (~125 KB)
+- **Audio served as static files** under `audio/` (externalized May 2026; was previously base64 inline at 50 MB)
+  - `audio/male/NNNN.mp3` and `audio/female/NNNN.mp3` — ElevenLabs clips per word
+  - `audio/milestones/{shotaAudio,gjovalinAudio,lekeAudio,nikolleAudio}.mp3` — streak songs
+  - `audio/manifest.json` — text → "NNNN" lookup (also baked into JS as `AUDIO_MANIFEST`)
+  - `audio/missing_female.json` — list of 118 texts pending female regen
+- **Single eagle PNG** at `assets/eagle.png` (referenced from index.html)
 - **No build step, no framework, no bundler** — pure vanilla JS
-- **No backend** — all data is hardcoded JS arrays, state via localStorage
+- **No backend** — data is hardcoded JS arrays, state via localStorage
 - **Netlify static hosting** — entry point MUST be named `index.html`
-- Do NOT split into multiple files. Do NOT add a build system.
+- Do NOT add a build system. Do NOT re-bake audio into base64.
 
 ## Data Structure
 All word data lives as JS arrays in the `<script>` block:
@@ -52,15 +58,20 @@ Always verify words are Gheg (northern Albanian / Kosovo / Malsor), NOT Tosk (st
 6. `mix` — Mixed: randomly picks flash/mc/listen each session
 
 ## Pronunciation / Voice
-- Always speaks the **phonetic string** (`.p` field), never the Albanian text
-- Web Speech API, voice preference: Italian → Greek → Romanian → Croatian → Spanish → English
-- `speak(phonetic)` is the main function, rate 0.68
+- `speak(albanian, phonetic)` — primary path is the ElevenLabs clip via `AUDIO_MANIFEST[albanian]`
+- Voice preference (`_voicePref`) is `'male'` or `'female'`, stored in `localStorage.bf_voice`
+- Fallback chain: requested gender → male (if female missing for that text) → Web Speech API on the phonetic string (`u.lang='en-US'`, rate 0.72)
+- 118 female clips still missing — listed in `audio/missing_female.json`. Regenerate via ElevenLabs when quota allows.
 
 ## Achievement System
 - Fires at streak 10 / 25 / 50 / 100 consecutive correct answers
 - `checkStreakMilestone(streak)` called after every correct answer
-- Plays *Vallja e Rugovës* (Shota) — 45s MP3 embedded as base64
-- Eagle animates with gold sparks overlay
+- Songs are external MP3s under `audio/milestones/` — `<audio id="...">` tags reference them by relative path
+  - 10: shotaAudio.mp3 (Vallja e Rugovës, 45s)
+  - 25: gjovalinAudio.mp3 (skip 35s intro)
+  - 50: lekeAudio.mp3 (skip 5s intro)
+  - 100: nikolleAudio.mp3 (full)
+- Eagle animates with gold sparks overlay (`assets/eagle.png`)
 - `_lastMilestoneFired` prevents duplicate triggers; resets on wrong answer
 
 ## App State Object
@@ -91,9 +102,14 @@ let S = {
 - `toggleTheme()` toggles and saves to `localStorage` key `bf_dark`
 
 ## Files
-- `index.html` — entire app (HTML + CSS + JS + base64 eagle image + base64 audio)
-- `og-image.png` — 1200×630 social share card (must be hosted at same domain)
-- `favicon.png` — eagle favicon (also base64 embedded in index.html as fallback)
+- `index.html` — app code (~125 KB; HTML + CSS + JS + small AUDIO_MANIFEST)
+- `assets/eagle.png` — eagle logo (referenced from index.html)
+- `og-image.png` — 1200×630 social share card
+- `favicon.png` — eagle favicon (linked, not inlined)
+- `audio/` — externalized voice clips + milestone songs + manifest
+- `scripts/` — one-off Python tooling (`externalize_audio.py`, `patch_index.py`, `externalize_assets.py`)
+- `source/` (gitignored) — original Gheg CSVs used to seed the data arrays
+- `reference-audio/` (gitignored) — Wikitongues native-speaker reference recordings
 
 ## Deployment
 1. All 3 files go to Netlify together (drag zip or drag folder)
