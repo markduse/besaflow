@@ -17,6 +17,9 @@ index.html.bak-*
 # Migration handoff — contains an API key until Stage 0a key rotation is done. Never commit.
 HANDOFF.md
 
+# Whisper models + working WAVs / SRTs — local-only tooling for song timing extraction
+models/
+
 # Editor / OS
 .claude/
 .DS_Store
