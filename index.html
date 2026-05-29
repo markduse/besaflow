@@ -620,18 +620,80 @@ h1,h2,h3,.syne{font-family:'Inter',sans-serif;}
   border-top: 1px solid var(--border2);
   max-width: 320px;
 }
-/* Song-mode front: bigger Albanian line, multi-line friendly */
-.flip-front .fc-eng.song-gheg {
-  font-size: 22px; line-height: 1.35;
-  white-space: pre-line; max-width: 320px;
-  margin: 8px 0;
+
+/* ──── Song snippet panel (replaces flip-card in song mode) ──── */
+.song-view {
+  width: 100%; max-width: 520px;
+  margin: 0 auto;
+  background: var(--bg2);
+  border: 1px solid rgba(212,168,67,0.30);
+  border-radius: 18px;
+  padding: 24px 22px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.35);
+  display: flex; flex-direction: column;
+  gap: 0;
 }
-.flip-back .fc-alb.song-eng {
-  font-size: 20px; line-height: 1.35;
-  font-weight: 600;
-  white-space: pre-line; max-width: 320px;
+.sv-line { text-align: center; padding-bottom: 14px; }
+.sv-gheg {
+  font-size: 24px; font-weight: 700; line-height: 1.35;
+  color: var(--gold); white-space: pre-line;
+  margin-bottom: 6px;
+  letter-spacing: -0.005em;
 }
-/* Word-by-word breakdown — shown on flip-back for songs */
+.sv-phon {
+  font-size: 13px; font-style: italic;
+  color: rgba(212,168,67,0.65);
+  white-space: pre-line;
+}
+.sv-divider {
+  height: 1px; background: rgba(212,168,67,0.20);
+  margin: 4px 0 14px;
+}
+.sv-eng {
+  text-align: center;
+  font-size: 18px; font-weight: 500; line-height: 1.4;
+  color: var(--text);
+  white-space: pre-line;
+  margin-bottom: 14px;
+}
+.sv-notes {
+  font-size: 12.5px;
+  color: rgba(255,255,255,0.78);
+  background: rgba(212,168,67,0.10);
+  border-left: 3px solid var(--gold);
+  padding: 9px 12px;
+  border-radius: 4px;
+  line-height: 1.4;
+  margin: 0 0 14px;
+}
+[data-theme="light"] .sv-notes { color: var(--text); background: rgba(212,168,67,0.18); }
+.sv-notes:empty { display: none; }
+.sv-breakdown {
+  display: flex; flex-direction: column; gap: 4px;
+  max-height: 220px;
+  overflow-y: auto;
+  padding: 6px 4px 2px;
+  border-top: 1px dashed rgba(212,168,67,0.20);
+}
+.sv-breakdown:empty { display: none; }
+.sv-breakdown::-webkit-scrollbar { width: 6px; }
+.sv-breakdown::-webkit-scrollbar-thumb { background: rgba(212,168,67,0.30); border-radius: 3px; }
+/* Reuse the bd-row class from before, but inside song-view */
+.song-view .bd-row {
+  display: flex; align-items: baseline; gap: 10px;
+  font-size: 13px;
+  padding: 5px 8px;
+  border-radius: 6px;
+}
+.song-view .bd-row:hover { background: rgba(255,255,255,0.04); }
+.song-view .bd-gheg {
+  color: var(--gold); font-weight: 600;
+  min-width: 90px;
+}
+.song-view .bd-arrow { color: var(--text3); }
+.song-view .bd-eng { color: var(--text); flex: 1; }
+
+/* fc-breakdown legacy (only used if we ever render breakdown back on the flip) */
 .fc-breakdown {
   margin-top: 12px;
   padding-top: 12px;
@@ -642,20 +704,14 @@ h1,h2,h3,.syne{font-family:'Inter',sans-serif;}
   max-height: 200px;
   overflow-y: auto;
 }
-.bd-row {
+.fc-breakdown .bd-row {
   display: flex; align-items: baseline; gap: 8px;
-  font-size: 13px;
-  padding: 3px 6px;
-  border-radius: 5px;
+  font-size: 13px; padding: 3px 6px; border-radius: 5px;
   background: rgba(255,255,255,0.04);
 }
-.bd-gheg {
-  color: var(--gold);
-  font-weight: 600;
-  min-width: 70px;
-}
-.bd-arrow { color: var(--text3); }
-.bd-eng { color: var(--text); flex: 1; }
+.fc-breakdown .bd-gheg { color: var(--gold); font-weight: 600; min-width: 70px; }
+.fc-breakdown .bd-arrow { color: var(--text3); }
+.fc-breakdown .bd-eng { color: var(--text); flex: 1; }
 
 /* Report-word button + modal */
 .report-btn-sm {
@@ -905,8 +961,19 @@ h1,h2,h3,.syne{font-family:'Inter',sans-serif;}
         </div>
       </div>
     </div>
+    <!-- Song snippet panel — replaces the flip card when in song mode -->
+    <div class="song-view" id="songView" style="display:none">
+      <div class="sv-line">
+        <div class="sv-gheg" id="svGheg"></div>
+        <div class="sv-phon" id="svPhon"></div>
+      </div>
+      <div class="sv-divider"></div>
+      <div class="sv-eng" id="svEng"></div>
+      <div class="sv-notes" id="svNotes"></div>
+      <div class="sv-breakdown" id="svBreakdown"></div>
+    </div>
     <div class="fc-hint" id="fcHint">👆 Tap the card to reveal</div>
-    <button class="fc-speak" onclick="speakCurrent()">🔊 Hear it spoken</button>
+    <button class="fc-speak" id="fcSpeak" onclick="speakCurrent()">🔊 Hear it spoken</button>
     <div class="fc-actions" id="fcActions" style="display:none">
       <button class="fc-btn fc-wrong" onclick="fcAnswer(false)">✗ Didn't know</button>
       <button class="fc-btn fc-right" onclick="fcAnswer(true)">✓ Got it!</button>
@@ -2875,6 +2942,14 @@ function showScreen(id) {
   document.getElementById(id).classList.add('active');
   window.scrollTo(0,0);
   if (id === 'home') updateMilestone();
+  // Theme toggle only belongs on the home screen — elsewhere it overlaps the
+  // study header and progress bar.
+  const tb = document.getElementById('themeBtn');
+  if (tb) tb.style.display = (id === 'home') ? 'flex' : 'none';
+  // Stop any playing song snippet when leaving the snippet view.
+  if (id !== 'flashcard-screen' && typeof _stopSongSnippet === 'function') {
+    _stopSongSnippet();
+  }
 }
 
 // ═══════════════════════════════
@@ -2983,90 +3058,117 @@ function startSong(songId) {
   renderFC();
 }
 
+// Default snippet length when the song data doesn't yet have a per-snippet duration.
+const SONG_DEFAULT_DURATION_SEC = 15;
+
+function _stopSongSnippet() {
+  if (_speakAudio) { try { _speakAudio.pause(); } catch {} _speakAudio = null; }
+  if (_songSnippetTimer) { clearTimeout(_songSnippetTimer); _songSnippetTimer = null; }
+  _setSpeakButtonLabel(false);
+}
+
 function playSongSnippet(item) {
-  if (!item || !item.songAudio) {
-    // No audio yet — fall back to Web Speech on the phonetic so the line still 'plays'.
-    speakViaSpeech(item ? (item.p || item.a) : '');
+  if (!item) return;
+  // Toggle behavior: tapping play while playing = stop.
+  if (_speakAudio && !_speakAudio.paused) {
+    _stopSongSnippet();
     return;
   }
-  if (_speakAudio) { _speakAudio.pause(); _speakAudio = null; }
-  if (_songSnippetTimer) { clearTimeout(_songSnippetTimer); _songSnippetTimer = null; }
+  if (!item.songAudio) {
+    // No song MP3 — fall back to Web Speech on the phonetic so the line still 'plays'.
+    speakViaSpeech(item.p || item.a);
+    return;
+  }
+  // Fresh playback: cap duration so we don't blast the whole song every snippet.
+  _stopSongSnippet();
   _speakAudio = new Audio(item.songAudio);
   _speakAudio.currentTime = item.startAt || 0;
-  _speakAudio.play().catch(() => speakViaSpeech(item.p || item.a));
-  if (item.duration && item.duration > 0) {
-    const a = _speakAudio;
-    _songSnippetTimer = setTimeout(() => {
-      try { a.pause(); } catch {}
-    }, item.duration * 1000);
-  }
+  _speakAudio.play()
+    .then(() => _setSpeakButtonLabel(true))
+    .catch(() => speakViaSpeech(item.p || item.a));
+  const cap = (item.duration && item.duration > 0) ? item.duration : SONG_DEFAULT_DURATION_SEC;
+  const a = _speakAudio;
+  _songSnippetTimer = setTimeout(() => {
+    try { a.pause(); } catch {}
+    _setSpeakButtonLabel(false);
+  }, cap * 1000);
+  // Natural end -> reset label.
+  a.addEventListener('ended', () => _setSpeakButtonLabel(false), { once: true });
 }
 
 function renderFC() {
   if (S.idx >= S.queue.length) { showResult(); return; }
   const w = S.queue[S.idx];
-  const fcEng = document.getElementById('fcEng');
-  const fcAlb = document.getElementById('fcAlb');
-  const fcGheg = document.getElementById('fcGheg');
-  const fcBreakdown = document.getElementById('fcBreakdown');
   document.getElementById('fcProg').style.width = (S.idx/S.queue.length*100)+'%';
   document.getElementById('fcSub').textContent =
     (_isSongMode() ? 'Snippet ' : 'Card ') + (S.idx+1) + ' of ' + S.queue.length;
   document.getElementById('fcStreak').textContent = S.streak;
-  document.getElementById('fcEmoji').textContent = w.e;
+
+  const flipCard = document.getElementById('flipCard');
+  const songView = document.getElementById('songView');
+  const fcHint   = document.getElementById('fcHint');
+  const fcActions= document.getElementById('fcActions');
+  const fcSpeak  = document.getElementById('fcSpeak');
+  const fcRepeat = document.getElementById('fcRepeat');
 
   if (_isSongMode()) {
-    // Songs: Albanian FRONT, English BACK, plus word-by-word breakdown.
-    fcEng.textContent = w.a;            // Albanian (.a) on the FRONT face
-    fcEng.className = 'fc-eng song-gheg';
-    document.getElementById('fcSubHint').textContent = 'Tap to reveal English';
-    document.getElementById('fcCat').textContent = '🎵 ' + w.cat;
-
-    fcAlb.textContent = w.w;            // English (.w) on the BACK
-    fcAlb.className = 'fc-alb song-eng';
-    document.getElementById('fcIpa').textContent = '/'+w.p+'/';
-    fcGheg.textContent = w.notes ? '✦ ' + w.notes : '';
-    fcGheg.className = 'fc-snippet-notes';
-
-    // Word-by-word breakdown
-    if (Array.isArray(w.breakdown) && w.breakdown.length) {
-      fcBreakdown.innerHTML = '';
-      w.breakdown.forEach(pair => {
-        const [g, e] = pair;
+    // ── Song panel: show everything at once. No flip, no "tap to reveal".
+    flipCard.style.display = 'none';
+    songView.style.display = 'flex';
+    document.getElementById('svGheg').textContent  = w.a;
+    document.getElementById('svPhon').textContent  = '/' + w.p + '/';
+    document.getElementById('svEng').textContent   = w.w;
+    document.getElementById('svNotes').textContent = w.notes ? '✦ ' + w.notes : '';
+    const bd = document.getElementById('svBreakdown');
+    bd.innerHTML = '';
+    if (Array.isArray(w.breakdown)) {
+      w.breakdown.forEach(([g, e]) => {
         const row = document.createElement('div');
         row.className = 'bd-row';
-        const gs = document.createElement('span'); gs.className = 'bd-gheg'; gs.textContent = g;
-        const ar = document.createElement('span'); ar.className = 'bd-arrow'; ar.textContent = '→';
-        const es = document.createElement('span'); es.className = 'bd-eng';  es.textContent = e;
-        row.appendChild(gs); row.appendChild(ar); row.appendChild(es);
-        fcBreakdown.appendChild(row);
+        row.innerHTML = '<span class="bd-gheg"></span><span class="bd-arrow">→</span><span class="bd-eng"></span>';
+        row.querySelector('.bd-gheg').textContent = g;
+        row.querySelector('.bd-eng').textContent  = e;
+        bd.appendChild(row);
       });
-      fcBreakdown.style.display = 'flex';
-    } else {
-      fcBreakdown.style.display = 'none';
     }
+    // Action UI: hide "tap to reveal" hint, show Got it / Didn't know immediately,
+    // one play button only (the play/pause toggle on fcSpeak), hide the duplicate repeat.
+    fcHint.style.display = 'none';
+    fcActions.style.display = 'flex';
+    if (fcRepeat) fcRepeat.style.display = 'none';
+    _setSpeakButtonLabel(false);
   } else {
-    // Words / phrases / sentences (unchanged): English FRONT, Albanian BACK.
-    fcEng.textContent = w.w;
-    fcEng.className = 'fc-eng';
-    document.getElementById('fcSubHint').textContent = 'Tap to reveal Albanian';
-    document.getElementById('fcCat').textContent = S.sentMode ? 'Sentence — tap to hear Albanian' : w.cat;
-    fcAlb.textContent = w.a;
-    fcAlb.className = 'fc-alb';
-    document.getElementById('fcIpa').textContent = '/'+w.p+'/';
-    fcGheg.textContent = S.sentMode ? '' : ('Gheg: '+(w.gh||''));
-    fcGheg.className = 'fc-gheg';
-    fcBreakdown.style.display = 'none';
-    fcBreakdown.innerHTML = '';
-  }
+    // ── Regular flashcard flow (words / phrases / sentences): unchanged.
+    flipCard.style.display = '';
+    songView.style.display = 'none';
 
-  const card = document.getElementById('flipCard');
-  card.classList.remove('flipped');
-  S.fcFlipped = false;
-  document.getElementById('fcHint').style.display = 'flex';
-  document.getElementById('fcActions').style.display = 'none';
-  const rep = document.getElementById('fcRepeat');
-  if (rep) rep.style.display = 'none';
+    document.getElementById('fcEmoji').textContent = w.e;
+    document.getElementById('fcEng').textContent = w.w;
+    document.getElementById('fcEng').className = 'fc-eng';
+    document.getElementById('fcSubHint').textContent = 'Tap to reveal Albanian';
+    document.getElementById('fcCat').textContent =
+      S.sentMode ? 'Sentence — tap to hear Albanian' : w.cat;
+    document.getElementById('fcAlb').textContent = w.a;
+    document.getElementById('fcAlb').className = 'fc-alb';
+    document.getElementById('fcIpa').textContent = '/'+w.p+'/';
+    document.getElementById('fcGheg').textContent = S.sentMode ? '' : ('Gheg: '+(w.gh||''));
+    document.getElementById('fcGheg').className = 'fc-gheg';
+    document.getElementById('fcBreakdown').style.display = 'none';
+
+    flipCard.classList.remove('flipped');
+    S.fcFlipped = false;
+    fcHint.style.display = 'flex';
+    fcActions.style.display = 'none';
+    if (fcRepeat) fcRepeat.style.display = 'none';
+    if (fcSpeak) fcSpeak.textContent = '🔊 Hear it spoken';
+  }
+}
+
+// Helper for the play/pause toggle (songs only)
+function _setSpeakButtonLabel(playing) {
+  const btn = document.getElementById('fcSpeak');
+  if (!btn) return;
+  btn.textContent = playing ? '⏸ Pause snippet' : '🎵 Play snippet';
 }
 
 function flipCard() {
@@ -3089,6 +3191,8 @@ function speakCurrent() {
 }
 
 function fcAnswer(ok) {
+  // Songs: always stop playback before advancing so the next snippet starts fresh.
+  if (_isSongMode()) _stopSongSnippet();
   const w = S.queue[S.idx];
   if (ok) {
     S.correct++; S.streak++;
