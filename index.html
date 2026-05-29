@@ -644,6 +644,26 @@ h1,h2,h3,.syne{font-family:'Inter',sans-serif;}
   color: var(--gold); white-space: pre-line;
   letter-spacing: -0.003em;
 }
+/* Karaoke: per-word highlighting that follows the audio playhead */
+.kw {
+  display: inline-block;
+  transition: color .12s ease, text-shadow .12s ease, transform .15s ease;
+}
+.kw.kw-active {
+  color: #FFEDB4;
+  text-shadow: 0 0 14px rgba(255,232,156,0.55), 0 0 28px rgba(212,168,67,0.30);
+  transform: translateY(-1px);
+}
+[data-theme="light"] .kw.kw-active {
+  color: #8B5A1A;
+  text-shadow: 0 0 10px rgba(212,168,67,0.45);
+}
+.song-view .bd-row.active {
+  background: rgba(212,168,67,0.20);
+  transform: translateX(4px);
+  transition: background .15s ease, transform .15s ease;
+}
+.song-view .bd-row.active .bd-gheg { color: #FFEDB4; }
 .sv-phon {
   font-size: 13px; font-style: italic;
   color: rgba(255,255,255,0.5);
@@ -1592,42 +1612,6 @@ const WORDS = [
   {e:"🤲",w:"to catch",a:"me kapë",p:"meh kahpuh",cat:"Verbs",pos:"Verb"},
   {e:"📋",w:"to order",a:"me porositë",p:"meh pohrohseetuh",cat:"Verbs",pos:"Verb"},
 ,
-  {e:"🔤",w:"letter A",a:"a",p:"ah, like father",cat:"Alphabet",pos:"Letter"},
-  {e:"🔤",w:"letter B",a:"b",p:"b",cat:"Alphabet",pos:"Letter"},
-  {e:"🔤",w:"letter C",a:"c",p:"ts, like cats",cat:"Alphabet",pos:"Letter"},
-  {e:"🔤",w:"letter D",a:"d",p:"d",cat:"Alphabet",pos:"Letter"},
-  {e:"🔤",w:"letter Dh",a:"dh",p:"th, like this",cat:"Alphabet",pos:"Letter"},
-  {e:"🔤",w:"letter E",a:"e",p:"eh",cat:"Alphabet",pos:"Letter"},
-  {e:"🔤",w:"letter F",a:"f",p:"f",cat:"Alphabet",pos:"Letter"},
-  {e:"🔤",w:"letter G",a:"g",p:"g",cat:"Alphabet",pos:"Letter"},
-  {e:"🔤",w:"letter Gj",a:"gj",p:"soft gy/j sound",cat:"Alphabet",pos:"Letter"},
-  {e:"🔤",w:"letter H",a:"h",p:"h",cat:"Alphabet",pos:"Letter"},
-  {e:"🔤",w:"letter I",a:"i",p:"ee",cat:"Alphabet",pos:"Letter"},
-  {e:"🔤",w:"letter J",a:"j",p:"y, like yes",cat:"Alphabet",pos:"Letter"},
-  {e:"🔤",w:"letter K",a:"k",p:"k",cat:"Alphabet",pos:"Letter"},
-  {e:"🔤",w:"letter L",a:"l",p:"l",cat:"Alphabet",pos:"Letter"},
-  {e:"🔤",w:"letter Ll",a:"ll",p:"dark/heavier l",cat:"Alphabet",pos:"Letter"},
-  {e:"🔤",w:"letter M",a:"m",p:"m",cat:"Alphabet",pos:"Letter"},
-  {e:"🔤",w:"letter N",a:"n",p:"n",cat:"Alphabet",pos:"Letter"},
-  {e:"🔤",w:"letter Nj",a:"nj",p:"ny, like canyon",cat:"Alphabet",pos:"Letter"},
-  {e:"🔤",w:"letter O",a:"o",p:"oh",cat:"Alphabet",pos:"Letter"},
-  {e:"🔤",w:"letter P",a:"p",p:"p",cat:"Alphabet",pos:"Letter"},
-  {e:"🔤",w:"letter Q",a:"q",p:"ky / soft ch-ish",cat:"Alphabet",pos:"Letter"},
-  {e:"🔤",w:"letter R",a:"r",p:"rolled r",cat:"Alphabet",pos:"Letter"},
-  {e:"🔤",w:"letter Rr",a:"rr",p:"strong rolled rr",cat:"Alphabet",pos:"Letter"},
-  {e:"🔤",w:"letter S",a:"s",p:"s",cat:"Alphabet",pos:"Letter"},
-  {e:"🔤",w:"letter Sh",a:"sh",p:"sh",cat:"Alphabet",pos:"Letter"},
-  {e:"🔤",w:"letter T",a:"t",p:"t",cat:"Alphabet",pos:"Letter"},
-  {e:"🔤",w:"letter Th",a:"th",p:"th, like thin",cat:"Alphabet",pos:"Letter"},
-  {e:"🔤",w:"letter U",a:"u",p:"oo",cat:"Alphabet",pos:"Letter"},
-  {e:"🔤",w:"letter V",a:"v",p:"v",cat:"Alphabet",pos:"Letter"},
-  {e:"🔤",w:"letter X",a:"x",p:"dz",cat:"Alphabet",pos:"Letter"},
-  {e:"🔤",w:"letter Xh",a:"xh",p:"j, like jump",cat:"Alphabet",pos:"Letter"},
-  {e:"🔤",w:"letter Y",a:"y",p:"French u / German ü",cat:"Alphabet",pos:"Letter"},
-  {e:"🔤",w:"letter Z",a:"z",p:"z",cat:"Alphabet",pos:"Letter"},
-  {e:"🔤",w:"letter Zh",a:"zh",p:"s in measure",cat:"Alphabet",pos:"Letter"},
-  {e:"🔤",w:"letter Ç",a:"ç",p:"ch, like church",cat:"Alphabet",pos:"Letter"},
-  {e:"🔤",w:"letter Ë",a:"ë",p:"uh / schwa",cat:"Alphabet",pos:"Letter"},
   {e:"🔢",w:"1",a:"nji",p:"nyee",cat:"Numbers",pos:"Number"},
   {e:"🔢",w:"10",a:"dhjetë",p:"thjehtuh",cat:"Numbers",pos:"Number"},
   {e:"🔢",w:"100",a:"njiqind",p:"nyeecheend",cat:"Numbers",pos:"Number"},
@@ -2330,6 +2314,49 @@ const SENTENCES = [
   {e:"💬",w:"We talk Albanian",a:"Na fol shqip",p:"nah fohl shcheep",cat:"Sentences",pos:"Sentence"},
   {e:"💬",w:"We learn a book",a:"Na mësoj libër",p:"nah muh-soy lee-buhr",cat:"Sentences",pos:"Sentence"},
   {e:"💬",w:"We learn Albanian",a:"Na mësoj shqip",p:"nah muh-soy shcheep",cat:"Sentences",pos:"Sentence"},
+,
+  {e:"😴",w:"I slept",a:"Kam fjet",p:"kahm fyet",cat:"Sentences",pos:"Sentence"},
+  {e:"😴",w:"You slept",a:"Ke fjet",p:"keh fyet",cat:"Sentences",pos:"Sentence"},
+  {e:"😴",w:"He slept",a:"Ka fjet",p:"kah fyet",cat:"Sentences",pos:"Sentence"},
+  {e:"😴",w:"She slept",a:"Ajo ka fjet",p:"ah-yoh kah fyet",cat:"Sentences",pos:"Sentence"},
+  {e:"😴",w:"We slept",a:"Kena fjet",p:"keh-nah fyet",cat:"Sentences",pos:"Sentence"},
+  {e:"😴",w:"They slept",a:"Kan fjet",p:"kahn fyet",cat:"Sentences",pos:"Sentence"},
+  {e:"😴",w:"The boy slept",a:"Djali ka fjet",p:"jah-lee kah fyet",cat:"Sentences",pos:"Sentence"},
+  {e:"😴",w:"The girl slept",a:"Çika ka fjet",p:"chee-kah kah fyet",cat:"Sentences",pos:"Sentence"},
+  {e:"😴",w:"The dad slept",a:"Babi ka fjet",p:"bah-bee kah fyet",cat:"Sentences",pos:"Sentence"},
+  {e:"😴",w:"The mom slept",a:"Nana ka fjet",p:"nah-nah kah fyet",cat:"Sentences",pos:"Sentence"},
+  {e:"🛏️",w:"The boy went to bed",a:"Djali shkoi me fjet",p:"jah-lee shkoy meh fyet",cat:"Sentences",pos:"Sentence"},
+  {e:"🛏️",w:"The girl went to bed",a:"Çika shkoi me fjet",p:"chee-kah shkoy meh fyet",cat:"Sentences",pos:"Sentence"},
+  {e:"🛏️",w:"I went to bed",a:"Shkova me fjet",p:"shkoh-vah meh fyet",cat:"Sentences",pos:"Sentence"},
+  {e:"🍞",w:"I ate bread",a:"Kam hangër bukë",p:"kahm hahn-guhr boo-kuh",cat:"Sentences",pos:"Sentence"},
+  {e:"🍴",w:"We ate",a:"Kena hangër",p:"keh-nah hahn-guhr",cat:"Sentences",pos:"Sentence"},
+  {e:"🍎",w:"The boy ate apples",a:"Djali ka hangër molla",p:"jah-lee kah hahn-guhr moh-lah",cat:"Sentences",pos:"Sentence"},
+  {e:"🥚",w:"The mother cooked eggs",a:"Nana ka gatu vezë",p:"nah-nah kah gah-too veh-zuh",cat:"Sentences",pos:"Sentence"},
+  {e:"🍳",w:"The mom fried eggs",a:"Nana ka piek vezë",p:"nah-nah kah pyek veh-zuh",cat:"Sentences",pos:"Sentence"},
+  {e:"☕",w:"The dad drank coffee",a:"Babi ka pi kafe",p:"bah-bee kah pee kah-feh",cat:"Sentences",pos:"Sentence"},
+  {e:"💧",w:"The girl drank water",a:"Çika ka pi ujë",p:"chee-kah kah pee oo-yuh",cat:"Sentences",pos:"Sentence"},
+  {e:"🥛",w:"I drank milk",a:"Kam pi qumësht",p:"kahm pee choo-muhsht",cat:"Sentences",pos:"Sentence"},
+  {e:"🏡",w:"I went home",a:"Kam shku n'shpi",p:"kahm shkoo n-shpee",cat:"Sentences",pos:"Sentence"},
+  {e:"🏫",w:"We went to school",a:"Kena shku n'shkollë",p:"keh-nah shkoo n-shkoh-luh",cat:"Sentences",pos:"Sentence"},
+  {e:"💼",w:"He went to work",a:"Ka shku n'punë",p:"kah shkoo n-poo-nuh",cat:"Sentences",pos:"Sentence"},
+  {e:"🛒",w:"The boy went to the store",a:"Djali ka shku n'dyqan",p:"jah-lee kah shkoo n-due-chahn",cat:"Sentences",pos:"Sentence"},
+  {e:"⛪",w:"The mother went to church",a:"Nana ka shku n'kishë",p:"nah-nah kah shkoo n-kee-shuh",cat:"Sentences",pos:"Sentence"},
+  {e:"😢",w:"The boy is sad",a:"Djali osht i mërzit",p:"jah-lee osht ee muhr-zeet",cat:"Sentences",pos:"Sentence"},
+  {e:"😢",w:"The girl is sad",a:"Çika osht e mërzitun",p:"chee-kah osht eh muhr-zee-toon",cat:"Sentences",pos:"Sentence"},
+  {e:"😊",w:"The boy is happy",a:"Djali osht i lumtur",p:"jah-lee osht ee loom-toor",cat:"Sentences",pos:"Sentence"},
+  {e:"😊",w:"The girl is happy",a:"Çika osht e lumtur",p:"chee-kah osht eh loom-toor",cat:"Sentences",pos:"Sentence"},
+  {e:"😴",w:"The boy is tired",a:"Djali osht i lodhun",p:"jah-lee osht ee loh-thoon",cat:"Sentences",pos:"Sentence"},
+  {e:"💪",w:"The dad is strong",a:"Babi osht i fortë",p:"bah-bee osht ee fohr-tuh",cat:"Sentences",pos:"Sentence"},
+  {e:"😍",w:"The mother is beautiful",a:"Nana osht e bukur",p:"nah-nah osht eh boo-koor",cat:"Sentences",pos:"Sentence"},
+  {e:"🚛",w:"The green truck",a:"Kamioni i gjelbër",p:"kah-mee-oh-nee ee gyel-buhr",cat:"Sentences",pos:"Sentence"},
+  {e:"🚗",w:"The red car",a:"Kerri i kuq",p:"keh-rree ee kooch",cat:"Sentences",pos:"Sentence"},
+  {e:"🏠",w:"The big house",a:"Shpia e madhe",p:"shpee-ah eh mah-theh",cat:"Sentences",pos:"Sentence"},
+  {e:"🐕",w:"The small dog",a:"Qeni i vogël",p:"cheh-nee ee voh-guhl",cat:"Sentences",pos:"Sentence"},
+  {e:"🐎",w:"The white horse",a:"Kali i bardhë",p:"kah-lee ee bahr-thuh",cat:"Sentences",pos:"Sentence"},
+  {e:"🐈",w:"The black cat",a:"Macja e zezë",p:"mah-tsyah eh zeh-zuh",cat:"Sentences",pos:"Sentence"},
+  {e:"🌌",w:"The blue sky",a:"Qielli i kaltër",p:"chyeh-lee ee kahl-tuhr",cat:"Sentences",pos:"Sentence"},
+  {e:"😴",w:"I am tired",a:"Jam i lodhun",p:"yahm ee loh-thoon",cat:"Sentences",pos:"Sentence"},
+  {e:"😊",w:"I am happy",a:"Jam i lumtur",p:"yahm ee loom-toor",cat:"Sentences",pos:"Sentence"}
 ];
 
 // ═══════════════════════════════
@@ -3600,9 +3627,59 @@ function startSong(songId) {
 // Default snippet length when the song data doesn't yet have a per-snippet duration.
 const SONG_DEFAULT_DURATION_SEC = 15;
 
+// Karaoke state — see _startKaraoke / _stopKaraoke.
+let _karaokeTicker = null;
+
+// Build per-word spans for the Gheg line so each word can light up in turn.
+// Splits on whitespace but preserves the "/" as a non-highlightable separator
+// so two-line snippets (gheg1 / gheg2) keep their visual rhythm.
+function _renderGhegKaraoke(text) {
+  const esc = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const tokens = (text || '').split(/(\s+)/);
+  let out = '';
+  for (const t of tokens) {
+    if (!t) continue;
+    if (/^\s+$/.test(t))      out += t;
+    else if (t === '/')        out += '<span class="kw-sep" style="opacity:.5;margin:0 .25em">/</span>';
+    else                       out += '<span class="kw">' + esc(t) + '</span>';
+  }
+  return out;
+}
+
+function _startKaraoke(item) {
+  _stopKaraoke();
+  if (!_speakAudio) return;
+  const start = item.startAt || 0;
+  const dur   = (item.duration && item.duration > 0) ? item.duration : SONG_DEFAULT_DURATION_SEC;
+  const wordSpans = document.querySelectorAll('#svGheg .kw');
+  // Breakdown rows may not yet be in the DOM if the user hasn't revealed — that's
+  // fine, querySelectorAll runs each tick so post-reveal they'll start lighting up.
+  _karaokeTicker = setInterval(() => {
+    if (!_speakAudio || _speakAudio.paused) return;
+    const elapsed = _speakAudio.currentTime - start;
+    const frac    = Math.max(0, Math.min(0.999, elapsed / dur));
+    if (wordSpans.length) {
+      const idx = Math.min(wordSpans.length - 1, Math.floor(frac * wordSpans.length));
+      wordSpans.forEach((s, i) => s.classList.toggle('kw-active', i === idx));
+    }
+    const bdRows = document.querySelectorAll('#svBreakdown .bd-row');
+    if (bdRows.length) {
+      const idx = Math.min(bdRows.length - 1, Math.floor(frac * bdRows.length));
+      bdRows.forEach((r, i) => r.classList.toggle('active', i === idx));
+    }
+  }, 80);
+}
+
+function _stopKaraoke() {
+  if (_karaokeTicker) { clearInterval(_karaokeTicker); _karaokeTicker = null; }
+  document.querySelectorAll('#svGheg .kw').forEach(s => s.classList.remove('kw-active'));
+  document.querySelectorAll('#svBreakdown .bd-row').forEach(r => r.classList.remove('active'));
+}
+
 function _stopSongSnippet() {
   if (_speakAudio) { try { _speakAudio.pause(); } catch {} _speakAudio = null; }
   if (_songSnippetTimer) { clearTimeout(_songSnippetTimer); _songSnippetTimer = null; }
+  _stopKaraoke();
   _setSpeakButtonLabel(false);
 }
 
@@ -3623,16 +3700,23 @@ function playSongSnippet(item) {
   _speakAudio = new Audio(item.songAudio);
   _speakAudio.currentTime = item.startAt || 0;
   _speakAudio.play()
-    .then(() => _setSpeakButtonLabel(true))
+    .then(() => {
+      _setSpeakButtonLabel(true);
+      _startKaraoke(item);
+    })
     .catch(() => speakViaSpeech(item.p || item.a));
   const cap = (item.duration && item.duration > 0) ? item.duration : SONG_DEFAULT_DURATION_SEC;
   const a = _speakAudio;
   _songSnippetTimer = setTimeout(() => {
     try { a.pause(); } catch {}
+    _stopKaraoke();
     _setSpeakButtonLabel(false);
   }, cap * 1000);
-  // Natural end -> reset label.
-  a.addEventListener('ended', () => _setSpeakButtonLabel(false), { once: true });
+  // Natural end -> reset.
+  a.addEventListener('ended', () => {
+    _stopKaraoke();
+    _setSpeakButtonLabel(false);
+  }, { once: true });
 }
 
 function renderFC() {
@@ -3655,7 +3739,8 @@ function renderFC() {
     //    revealed only after the user commits (Got it / Didn't know).
     flipCard.style.display = 'none';
     songView.style.display = 'flex';
-    document.getElementById('svGheg').textContent = w.a;
+    // Render Gheg line as per-word spans so the karaoke ticker can highlight them.
+    document.getElementById('svGheg').innerHTML = _renderGhegKaraoke(w.a);
     document.getElementById('svPhon').textContent = '/' + w.p + '/';
 
     // Pre-fill the reveal content but keep it hidden until answer.
