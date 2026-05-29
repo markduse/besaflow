@@ -568,6 +568,59 @@ h1,h2,h3,.syne{font-family:'Inter',sans-serif;}
   width: 100%;
 }
 
+/* Songs hero entry */
+.songs-hero {
+  display: flex; align-items: center; gap: 14px;
+  width: 100%;
+  padding: 16px 18px;
+  background: linear-gradient(135deg, rgba(212,168,67,0.16), rgba(200,36,30,0.10));
+  border: 1px solid rgba(212,168,67,0.35);
+  border-radius: 14px;
+  color: inherit;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+  transition: transform .12s, border-color .12s;
+}
+.songs-hero:hover { transform: translateY(-1px); border-color: var(--gold); }
+.songs-hero-emoji { font-size: 28px; }
+.songs-hero-body { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+.songs-hero-title { font-size: 16px; font-weight: 700; color: var(--gold); }
+.songs-hero-sub { font-size: 12px; color: var(--text2); }
+.songs-hero-arrow { font-size: 24px; color: var(--gold); opacity: .7; }
+
+/* Song picker grid */
+.song-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+  padding: 12px 16px;
+  max-width: 600px; margin: 0 auto;
+}
+.song-card {
+  background: var(--bg2);
+  border: 1px solid var(--border2);
+  border-radius: 12px;
+  padding: 14px 12px;
+  cursor: pointer;
+  transition: border-color .12s, transform .12s;
+  display: flex; flex-direction: column; gap: 6px;
+  text-align: center;
+}
+.song-card:hover { border-color: var(--gold); transform: translateY(-2px); }
+.song-card-cover { font-size: 32px; }
+.song-card-title { font-size: 13px; font-weight: 700; color: var(--text); }
+.song-card-meta  { font-size: 10px; color: var(--text3); }
+.song-card-count { font-size: 10px; color: var(--gold); margin-top: 4px; }
+
+/* Snippet card extras (notes line on flip-back) */
+.fc-snippet-notes {
+  font-size: 12px; font-style: italic;
+  color: var(--text3);
+  margin-top: 10px; padding-top: 10px;
+  border-top: 1px solid var(--border2);
+  max-width: 280px;
+}
+
 /* Report-word button + modal */
 .report-btn-sm {
   display: block;
@@ -702,6 +755,18 @@ h1,h2,h3,.syne{font-family:'Inter',sans-serif;}
   <!-- CONFIG -->
   <div class="config-card">
 
+    <!-- SONGS hero entry — its own paradigm, separate from quiz modes -->
+    <div class="config-section">
+      <button class="songs-hero" onclick="openSongPicker()">
+        <span class="songs-hero-emoji">🎵</span>
+        <span class="songs-hero-body">
+          <span class="songs-hero-title">Songs</span>
+          <span class="songs-hero-sub">Learn the words you already sing</span>
+        </span>
+        <span class="songs-hero-arrow">›</span>
+      </button>
+    </div>
+
     <div class="config-section">
       <div class="config-label">Study Mode</div>
       <div class="mode-grid">
@@ -761,6 +826,22 @@ h1,h2,h3,.syne{font-family:'Inter',sans-serif;}
 </div>
 
 <!-- ═══════ FLASHCARD ═══════ -->
+<!-- ═══════ SONGS PICKER ═══════ -->
+<div class="screen" id="song-picker-screen">
+  <div class="study-hdr">
+    <button class="back-btn" onclick="showScreen('home')">←</button>
+    <div class="hdr-mid">
+      <div class="hdr-title">Songs</div>
+      <div class="hdr-sub">Pick a song to learn its words</div>
+    </div>
+    <div style="width:36px"></div>
+  </div>
+  <div class="song-grid" id="songGrid"></div>
+  <div style="text-align:center;padding:20px;color:var(--text3);font-size:12px;max-width:380px;margin:0 auto;">
+    Songs are drafts — please verify lyrics line-by-line with family. Use 🚩 Report on any card to flag a fix.
+  </div>
+</div>
+
 <div class="screen" id="flashcard-screen">
   <div class="study-hdr">
     <button class="back-btn" onclick="showScreen('home')">←</button>
@@ -2097,6 +2178,59 @@ const SENTENCES = [
 ];
 
 // ═══════════════════════════════
+// SONGS — traditional Gheg / Malsor folk
+// Each snippet plays a slice of the song (startAt/duration in seconds) with the
+// Gheg line + English translation + phonetic. Instrumental songs use snippets
+// as cultural / vocabulary cards. All content is DRAFT until family-verified;
+// flag via the Report-word button.
+// ═══════════════════════════════
+const SONGS = [
+  {
+    id: "vallja-e-rugoves",
+    title: "Vallja e Rugovës",
+    artist: "Traditional",
+    region: "Rugovë, Kosovë",
+    cover: "💃",
+    audio: "audio/milestones/shotaAudio.mp3",
+    about: "The most iconic Gheg dance — a Shota where a man imitates the eagle's wings while a woman moves in counter-rhythm. Traditionally instrumental; we use it here as a cultural / vocabulary lesson.",
+    snippets: [
+      { gheg:"Vallja e Rugovës",       english:"The Dance of Rugova",          phonetic:"vahl-yah eh roo-goh-vuhs", startAt:0,  duration:8,  notes:"Rugovë is a highland region in Kosovo" },
+      { gheg:"Burri kërcen si shqiponja", english:"The man dances like the eagle", phonetic:"boorri kuhrtsen see shchee-pohn-yah", startAt:8,  duration:10, notes:"Arms spread like wings — the eagle imitation is the heart of Shota" },
+      { gheg:"Vallja malsore",         english:"The highlander's dance",        phonetic:"vahl-yah mahl-soh-reh", startAt:18, duration:8,  notes:"Malsor = mountain people — your people" },
+      { gheg:"Shota me daulle",        english:"Shota with the drum",           phonetic:"shoh-tah meh dah-oo-lleh", startAt:26, duration:10, notes:"Daulle is the drum that drives the rhythm" },
+    ]
+  },
+  {
+    id: "krushqit-po-na-vijne",
+    title: "Krushqit po na vijnë",
+    artist: "Traditional (wedding)",
+    region: "Northern Albania / Kosovë",
+    cover: "🎊",
+    audio: null,
+    about: "A welcome song sung when the groom's wedding party (krushqit) arrives at the bride's house. Draft lyrics — please verify with the family.",
+    snippets: [
+      { gheg:"Krushqit po na vijnë",    english:"The wedding party is coming",  phonetic:"krooshchee-t poh nah vee-y-nuh", startAt:0, duration:0, notes:"Krushqit = the groom's relatives arriving for the bride" },
+      { gheg:"Hape derën, nuse e re",   english:"Open the door, new bride",      phonetic:"hah-peh dehruhn noo-seh eh reh", startAt:0, duration:0, notes:"Sung as the procession nears the house" },
+      { gheg:"Me lule e me daulle",     english:"With flowers and with drums",   phonetic:"meh loo-leh eh meh dah-oo-lleh", startAt:0, duration:0, notes:"The traditional accompaniment of a krushqi arrival" },
+    ]
+  },
+  {
+    id: "kenga-e-mujit",
+    title: "Kënga e Mujit",
+    artist: "Traditional (Kreshniket cycle)",
+    region: "Malsia e Madhe",
+    cover: "⚔️",
+    audio: null,
+    about: "From the Kreshniket epic cycle — songs of frontier warriors sung on the lahuta (one-string fiddle). Mujo and Halil are the legendary brothers at the heart of Malsor oral tradition. Draft lyrics.",
+    snippets: [
+      { gheg:"Kënga e Mujit",            english:"The Song of Muja",             phonetic:"kuhn-gah eh moo-yeet", startAt:0, duration:0, notes:"Muji is the elder of the two warrior brothers in the Kreshniket cycle" },
+      { gheg:"Mujo trim i maleve",       english:"Muja, brave one of the mountains", phonetic:"moo-yoh treem ee mah-leh-veh", startAt:0, duration:0, notes:"Trim = brave / hero — a core Malsor virtue" },
+      { gheg:"Me lahutë po t'këndoj",    english:"With the lahuta I sing to you", phonetic:"meh lah-hoo-tuh poh tkuhn-dohy", startAt:0, duration:0, notes:"The lahuta is the one-stringed bowed instrument of the Gheg rapsodes" },
+    ]
+  },
+];
+
+// ═══════════════════════════════
 // STATE
 // ═══════════════════════════════
 let S = {
@@ -2152,6 +2286,8 @@ function updateMilestone() {
 // ═══════════════════════════════
 function selectMode(mode, el) {
   S.mode = mode;
+  S.songId = null;                      // leaving song mode if we were in it
+  if (_songSnippetTimer) { clearTimeout(_songSnippetTimer); _songSnippetTimer = null; }
   document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
   el.classList.add('active');
   // Update category chips based on mode
@@ -2389,18 +2525,99 @@ function speakViaSpeech(text) {
 // ═══════════════════════════════
 // FLASHCARD
 // ═══════════════════════════════
+// ═══════════════════════════════
+// SONGS — picker, snippet flashcards, audio offset playback
+// ═══════════════════════════════
+let _songSnippetTimer = null;
+function _isSongMode() { return S.mode === 'song'; }
+
+function openSongPicker() {
+  const grid = document.getElementById('songGrid');
+  grid.innerHTML = '';
+  SONGS.forEach(song => {
+    const card = document.createElement('div');
+    card.className = 'song-card';
+    card.onclick = () => startSong(song.id);
+    card.innerHTML =
+      '<div class="song-card-cover">' + song.cover + '</div>' +
+      '<div class="song-card-title"></div>' +
+      '<div class="song-card-meta"></div>' +
+      '<div class="song-card-count">' + song.snippets.length + ' snippets' +
+        (song.audio ? '' : ' • no audio yet') + '</div>';
+    card.querySelector('.song-card-title').textContent = song.title;
+    card.querySelector('.song-card-meta').textContent  = song.artist + ' · ' + song.region;
+    grid.appendChild(card);
+  });
+  showScreen('song-picker-screen');
+}
+
+function startSong(songId) {
+  const song = SONGS.find(s => s.id === songId);
+  if (!song) return;
+  S.mode = 'song';
+  S.songId = songId;
+  // Map snippets to the {e,w,a,p,cat,pos} shape renderFC expects, carrying extras.
+  S.queue = song.snippets.map(sn => ({
+    e: song.cover,
+    w: sn.english,
+    a: sn.gheg,
+    p: sn.phonetic,
+    cat: song.title,
+    pos: 'Snippet',
+    startAt: sn.startAt,
+    duration: sn.duration,
+    notes: sn.notes,
+    songAudio: song.audio,
+  }));
+  S.idx = 0; S.correct = 0; S.streak = 0;
+  S.fcFlipped = false;
+  S.sentMode = true;  // hide the Gheg: prefix line, use a roomier layout
+  document.getElementById('fcTitle').textContent = '🎵 ' + song.title;
+  showScreen('flashcard-screen');
+  renderFC();
+}
+
+function playSongSnippet(item) {
+  if (!item || !item.songAudio) {
+    // No audio yet — fall back to Web Speech on the phonetic so the line still 'plays'.
+    speakViaSpeech(item ? (item.p || item.a) : '');
+    return;
+  }
+  if (_speakAudio) { _speakAudio.pause(); _speakAudio = null; }
+  if (_songSnippetTimer) { clearTimeout(_songSnippetTimer); _songSnippetTimer = null; }
+  _speakAudio = new Audio(item.songAudio);
+  _speakAudio.currentTime = item.startAt || 0;
+  _speakAudio.play().catch(() => speakViaSpeech(item.p || item.a));
+  if (item.duration && item.duration > 0) {
+    const a = _speakAudio;
+    _songSnippetTimer = setTimeout(() => {
+      try { a.pause(); } catch {}
+    }, item.duration * 1000);
+  }
+}
+
 function renderFC() {
   if (S.idx >= S.queue.length) { showResult(); return; }
   const w = S.queue[S.idx];
   document.getElementById('fcProg').style.width = (S.idx/S.queue.length*100)+'%';
-  document.getElementById('fcSub').textContent = 'Card '+(S.idx+1)+' of '+S.queue.length;
+  document.getElementById('fcSub').textContent =
+    (_isSongMode() ? 'Snippet ' : 'Card ') + (S.idx+1) + ' of ' + S.queue.length;
   document.getElementById('fcStreak').textContent = S.streak;
   document.getElementById('fcEmoji').textContent = w.e;
   document.getElementById('fcEng').textContent = w.w;
-  document.getElementById('fcCat').textContent = S.sentMode ? 'Sentence — tap to hear Albanian' : w.cat;
+  document.getElementById('fcCat').textContent =
+    _isSongMode() ? ('🎵 ' + w.cat)
+    : S.sentMode ? 'Sentence — tap to hear Albanian' : w.cat;
   document.getElementById('fcAlb').textContent = w.a;
   document.getElementById('fcIpa').textContent = '/'+w.p+'/';
-  document.getElementById('fcGheg').textContent = S.sentMode ? '' : ('Gheg: '+(w.gh||''));
+  // Notes line on the flip-back (songs only). Reuse fcGheg slot, repurposed.
+  if (_isSongMode()) {
+    document.getElementById('fcGheg').textContent = w.notes ? '✦ ' + w.notes : '';
+    document.getElementById('fcGheg').className = 'fc-snippet-notes';
+  } else {
+    document.getElementById('fcGheg').textContent = S.sentMode ? '' : ('Gheg: '+(w.gh||''));
+    document.getElementById('fcGheg').className = 'fc-gheg';
+  }
   const card = document.getElementById('flipCard');
   card.classList.remove('flipped');
   S.fcFlipped = false;
@@ -2417,10 +2634,17 @@ function flipCard() {
   document.getElementById('fcHint').style.display = 'none';
   document.getElementById('fcActions').style.display = 'flex';
   document.getElementById('fcRepeat').style.display = 'inline-flex';
-  const _w = S.queue[S.idx]; speak(_w.a, _w.p);
+  const _w = S.queue[S.idx];
+  if (_isSongMode()) playSongSnippet(_w);
+  else                speak(_w.a, _w.p);
 }
 
-function speakCurrent() { const w = S.queue[S.idx]; if (w) speak(w.a, w.p); }
+function speakCurrent() {
+  const w = S.queue[S.idx];
+  if (!w) return;
+  if (_isSongMode()) playSongSnippet(w);
+  else                speak(w.a, w.p);
+}
 
 function fcAnswer(ok) {
   const w = S.queue[S.idx];
