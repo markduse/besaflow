@@ -161,6 +161,26 @@ h1,h2,h3,.syne{font-family:'Inter',sans-serif;}
 .mode-btn .mb-icon{font-size:22px;margin-bottom:6px;}
 .mode-btn .mb-name{font-family:'Inter',sans-serif;font-size:13px;font-weight:700;margin-bottom:2px;}
 .mode-btn .mb-desc{font-size:11px;color:var(--text2);}
+.mode-btn-wide { grid-column: 1 / -1; }   /* Fill in the Blank spans full width */
+
+/* Cloze sentence display — the masked Albanian line above the choices */
+.mc-cloze-line {
+  font-size: 22px; font-weight: 700; line-height: 1.4;
+  color: var(--gold); text-align: center;
+  letter-spacing: -0.005em;
+  margin: 8px 0;
+  padding: 14px 16px;
+  background: rgba(212,168,67,0.08);
+  border: 1px dashed rgba(212,168,67,0.30);
+  border-radius: 12px;
+}
+.mc-cloze-line .blank {
+  display: inline-block;
+  min-width: 70px;
+  border-bottom: 2px solid var(--gold);
+  margin: 0 4px;
+  opacity: .7;
+}
 
 /* CATEGORY CHIPS */
 /* Category checklist — compact, scrollable */
@@ -941,6 +961,11 @@ h1,h2,h3,.syne{font-family:'Inter',sans-serif;}
           <div class="mb-icon">🎲</div>
           <div class="mb-name">Mixed</div>
           <div class="mb-desc">All modes</div>
+        </div>
+        <div class="mode-btn mode-btn-wide" id="modeCloze" onclick="selectMode('cloze',this)">
+          <div class="mb-icon">📝</div>
+          <div class="mb-name">Fill in the Blank</div>
+          <div class="mb-desc">Pick the missing word in a phrase</div>
         </div>
       </div>
     </div>
@@ -3521,6 +3546,24 @@ function startSession() {
     document.getElementById('mcNote').textContent = 'Pick the Albanian word';
     showScreen('mc-screen');
     renderMC();
+  } else if (effectiveMode === 'cloze') {
+    S.listenMode = false;
+    // Cloze prefers phrases/sentences (2+ words) — refilter the queue from the
+    // full pool so single-word entries don't slip in. Keeps category filter.
+    const POOL = WORDS.concat(PHRASES, SENTENCES);
+    const clozeable = POOL.filter(x =>
+      S.selectedCats.includes(x.cat) && /\s/.test(x.a)
+    );
+    if (clozeable.length === 0) {
+      showToast('No multi-word entries in selected categories');
+      return;
+    }
+    S.queue = shuffle(clozeable).slice(0, S.count);
+    document.getElementById('mcTitle').textContent = 'Fill in the Blank';
+    document.getElementById('mcPrompt').textContent = 'Pick the missing word';
+    document.getElementById('mcNote').textContent = '';
+    showScreen('mc-screen');
+    renderCloze();
   } else {
     S.listenMode = true;
     document.getElementById('mcTitle').textContent = 'Listen & Identify';
@@ -3966,13 +4009,19 @@ function mcAnswer(btn, correct, w) {
     if (b.textContent === w.a) b.classList.add('correct');
   });
   const fb = document.getElementById('mcFb');
+  // English meaning prefix — critical for Listen mode where the user never sees
+  // what the word actually means. Useful for regular MC too as confirmation.
+  const meaningHtml = '<div style="font-size:14px;opacity:.85;margin-bottom:6px">'
+    + (w.w || '').replace(/</g,'&lt;') + '</div>';
+  const speakArgs = "'" + w.a.replace(/'/g,"\\'") + "','" + (w.p||'').replace(/'/g,"\\'") + "'";
   if (correct) {
     btn.classList.add('correct');
     S.correct++; S.streak++;
     if (!S.practiced.includes(w.a)) S.practiced.push(w.a);
     checkStreakMilestone(S.streak);
-    fb.innerHTML = '<div style="margin-bottom:8px">✓ Correct! &nbsp;<strong>'+w.a+'</strong> &nbsp;<span style="opacity:.7;font-size:12px">/'+w.p+'/</span></div>'
-      + '<button class="repeat-btn" onclick="speak(\''+w.a.replace(/'/g,"\\'")+'\',\''+w.p.replace(/'/g,"\\'")+'\')">🔊 Hear it again — repeat out loud</button>';
+    fb.innerHTML = meaningHtml
+      + '<div style="margin-bottom:8px">✓ Correct! &nbsp;<strong>'+w.a+'</strong> &nbsp;<span style="opacity:.7;font-size:12px">/'+w.p+'/</span></div>'
+      + '<button class="repeat-btn" onclick="speak('+speakArgs+')">🔊 Hear it again — repeat out loud</button>';
     fb.className = 'mc-fb ok';
     showToast('+1 ⭐');
     setTimeout(() => speak(w.a, w.p), 300);
@@ -3980,8 +4029,9 @@ function mcAnswer(btn, correct, w) {
     btn.classList.add('wrong');
     S.streak = 0;
     _lastMilestoneFired = 0;
-    fb.innerHTML = '<div style="margin-bottom:8px">✗ The answer was &nbsp;<strong>'+w.a+'</strong> &nbsp;<span style="opacity:.7;font-size:12px">/'+w.p+'/</span></div>'
-      + '<button class="repeat-btn" onclick="speak(\''+w.a.replace(/'/g,"\\'")+'\',\''+w.p.replace(/'/g,"\\'")+'\')">🔊 Hear it — repeat out loud</button>';
+    fb.innerHTML = meaningHtml
+      + '<div style="margin-bottom:8px">✗ The answer was &nbsp;<strong>'+w.a+'</strong> &nbsp;<span style="opacity:.7;font-size:12px">/'+w.p+'/</span></div>'
+      + '<button class="repeat-btn" onclick="speak('+speakArgs+')">🔊 Hear it — repeat out loud</button>';
     fb.className = 'mc-fb bad';
     setTimeout(() => speak(w.a, w.p), 400);
   }
@@ -3993,7 +4043,121 @@ function mcAnswer(btn, correct, w) {
 
 function mcNext() {
   S.idx++;
-  renderMC();
+  if (S.mode === 'cloze') renderCloze();
+  else                     renderMC();
+}
+
+// ═══════════════════════════════
+// CLOZE — fill in the blank
+// ═══════════════════════════════
+// Pick a content word in the entry's Albanian line, hide it, and ask the user
+// to pick the right word from 4 choices. Distractors are pulled from the same
+// length tier across the full vocabulary so wrong answers feel plausible.
+function renderCloze() {
+  if (S.idx >= S.queue.length) { showResult(); return; }
+  const w = S.queue[S.idx];
+
+  // Split on whitespace, preserve original tokens with their indices.
+  const tokens = w.a.split(/\s+/);
+  // Candidates to blank: 3+ characters, no leading punctuation/separator,
+  // and excludes "/" (line separator we use in song-style snippets).
+  const candidates = tokens
+    .map((t, i) => ({ t, i }))
+    .filter(x => x.t.length >= 3 && !/^[\/\-—]/.test(x.t));
+  if (!candidates.length) { S.idx++; setTimeout(renderCloze, 50); return; }
+  const target = candidates[Math.floor(Math.random() * candidates.length)];
+  const targetWord = target.t;
+  // Strip trailing punctuation when matching choice text (e.g. "lezet," -> "lezet").
+  const targetClean = targetWord.replace(/[.,!?;:]+$/, '');
+
+  // Build the masked sentence as HTML so the blank can be styled.
+  const maskedHtml = tokens
+    .map((t, i) => i === target.i
+      ? '<span class="blank">&nbsp;&nbsp;&nbsp;&nbsp;</span>'
+      : t.replace(/</g,'&lt;'))
+    .join(' ');
+
+  // Distractor pool: every distinct word across all data of similar length.
+  const POOL = WORDS.concat(PHRASES, SENTENCES);
+  const wordSet = new Set();
+  POOL.forEach(e => e.a.split(/\s+/).forEach(t => {
+    const clean = t.replace(/[.,!?;:]+$/, '');
+    if (clean.length >= 2 && clean !== targetClean) wordSet.add(clean);
+  }));
+  const allWords = [...wordSet];
+  const lenClose = allWords.filter(t => Math.abs(t.length - targetClean.length) <= 2);
+  const pool = lenClose.length >= 6 ? lenClose : allWords;
+  const distractors = shuffle(pool).slice(0, 3);
+  const choices = shuffle([targetClean, ...distractors]);
+
+  // Header
+  document.getElementById('mcProg').style.width = (S.idx/S.queue.length*100)+'%';
+  document.getElementById('mcSub').textContent = 'Question '+(S.idx+1)+' of '+S.queue.length;
+  document.getElementById('mcStreak').textContent = S.streak;
+  document.getElementById('mcEmoji').textContent = w.e || '📝';
+
+  // English meaning at top; masked Albanian sentence below as the prompt.
+  document.getElementById('mcEng').textContent = w.w || '';
+  const note = document.getElementById('mcNote');
+  note.className = 'mc-cloze-line';
+  note.innerHTML = maskedHtml;
+
+  // Choices
+  const grid = document.getElementById('mcGrid');
+  grid.innerHTML = '';
+  choices.forEach(ch => {
+    const btn = document.createElement('button');
+    btn.className = 'mc-choice';
+    btn.textContent = ch;
+    btn.onclick = () => clozeAnswer(btn, ch === targetClean, w, targetClean, tokens, target.i);
+    grid.appendChild(btn);
+  });
+
+  document.getElementById('mcFb').style.display = 'none';
+  document.getElementById('mcNextBtn').style.display = 'none';
+}
+
+function clozeAnswer(btn, correct, w, targetWord, tokens, blankIdx) {
+  document.querySelectorAll('.mc-choice').forEach(b => {
+    b.disabled = true;
+    if (b.textContent === targetWord) b.classList.add('correct');
+  });
+  // Reveal: full sentence with the blank filled in gold.
+  const revealedHtml = tokens
+    .map((t, i) => i === blankIdx
+      ? '<strong style="color:var(--gold)">' + targetWord.replace(/</g,'&lt;') + '</strong>'
+      : t.replace(/</g,'&lt;'))
+    .join(' ');
+  const fb = document.getElementById('mcFb');
+  const meaningLine = '<div style="font-size:13px;opacity:.8;margin-top:8px">'
+    + (w.w || '').replace(/</g,'&lt;') + '</div>';
+  const speakArgs = "'" + w.a.replace(/'/g,"\\'") + "','" + (w.p||'').replace(/'/g,"\\'") + "'";
+  if (correct) {
+    btn.classList.add('correct');
+    S.correct++; S.streak++;
+    if (!S.practiced.includes(w.a)) S.practiced.push(w.a);
+    checkStreakMilestone(S.streak);
+    fb.innerHTML = '<div style="margin-bottom:8px">✓ Correct!</div>'
+      + '<div style="font-size:18px;line-height:1.4">' + revealedHtml + '</div>'
+      + meaningLine
+      + '<button class="repeat-btn" style="margin-top:10px" onclick="speak('+speakArgs+')">🔊 Hear the full line</button>';
+    fb.className = 'mc-fb ok';
+    showToast('+1 ⭐');
+  } else {
+    btn.classList.add('wrong');
+    S.streak = 0;
+    _lastMilestoneFired = 0;
+    fb.innerHTML = '<div style="margin-bottom:8px">✗ The missing word was <strong style="color:var(--gold)">'
+      + targetWord.replace(/</g,'&lt;') + '</strong></div>'
+      + '<div style="font-size:18px;line-height:1.4">' + revealedHtml + '</div>'
+      + meaningLine
+      + '<button class="repeat-btn" style="margin-top:10px" onclick="speak('+speakArgs+')">🔊 Hear the full line</button>';
+    fb.className = 'mc-fb bad';
+  }
+  fb.style.display = 'block';
+  document.getElementById('mcNextBtn').style.display = 'block';
+  document.getElementById('mcStreak').textContent = S.streak;
+  save();
 }
 
 // ═══════════════════════════════
