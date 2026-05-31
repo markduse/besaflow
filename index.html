@@ -727,12 +727,22 @@ h1,h2,h3,.syne{font-family:'Inter',sans-serif;}
 .song-view .bd-arrow { color: var(--text3); }
 .song-view .bd-eng { color: var(--text); flex: 1; }
 
-/* Continue button (post-reveal in song mode) */
+/* Continue button (post-reveal in song mode).
+   Note: this also carries the .fc-btn class which has `flex:1`. That's right for
+   the Got it / Didn't know pair inside .fc-actions (a flex row), but wrong here
+   — .fc-continue lives on its own as a flex child of .fc-body (a flex column),
+   so flex:1 stretches it to fill the remaining vertical space (huge gold slab).
+   Override to natural size + a comfortable centered width. */
 .fc-continue {
+  flex: 0 0 auto;
+  align-self: center;
+  width: auto;
+  min-width: 200px;
+  max-width: 380px;
   background: var(--gold);
   color: #1a1a1a;
   border: none;
-  padding: 12px 28px;
+  padding: 14px 32px;
   border-radius: 12px;
   font-weight: 700;
   font-size: 15px;
