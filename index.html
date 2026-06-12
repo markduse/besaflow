@@ -793,6 +793,47 @@ h1,h2,h3,.syne{font-family:'Inter',sans-serif;}
 .fc-breakdown .bd-arrow { color: var(--text3); }
 .fc-breakdown .bd-eng { color: var(--text); flex: 1; }
 
+/* ── Gamification: home stats strip ── */
+.home-stats{display:flex;gap:10px;max-width:520px;margin:14px auto 0;padding:0 16px;}
+.hs-chip{flex:1;background:var(--bg2);border:1px solid var(--border2);border-radius:12px;padding:10px 8px;text-align:center;}
+.hs-chip.clickable{cursor:pointer;transition:border-color .15s;}
+.hs-chip.clickable:hover{border-color:var(--gold);}
+.hs-big{font-size:17px;font-weight:800;color:var(--gold);white-space:nowrap;}
+.hs-label{font-size:9.5px;color:var(--text3);text-transform:uppercase;letter-spacing:.7px;margin-top:2px;}
+.hs-bar{height:4px;background:rgba(212,168,67,.15);border-radius:2px;margin-top:6px;overflow:hidden;}
+.hs-bar-fill{height:100%;background:var(--gold);border-radius:2px;width:0;transition:width .3s;}
+
+/* Continue (one-tap resume) */
+.continue-btn{display:none;align-items:center;gap:12px;width:100%;padding:15px 18px;margin-bottom:14px;background:var(--red);border:none;border-radius:14px;color:#fff;cursor:pointer;font-family:inherit;text-align:left;transition:transform .12s;}
+.continue-btn:hover{transform:translateY(-1px);}
+.continue-play{font-size:22px;}
+.continue-main{flex:1;display:flex;flex-direction:column;gap:2px;}
+.continue-title{font-size:15px;font-weight:800;}
+.continue-desc{font-size:12px;opacity:.85;}
+
+/* Result-screen extras */
+.res-banner{max-width:380px;margin:10px auto 0;padding:10px 16px;border-radius:12px;background:rgba(212,168,67,.15);border:1px solid var(--gold);color:var(--gold);font-weight:700;font-size:14px;display:none;}
+.res-misses{max-width:380px;margin:16px auto 0;text-align:left;background:var(--bg2);border:1px solid var(--border2);border-radius:14px;padding:14px 16px;display:none;}
+.res-misses h4{margin:0 0 8px;font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(--text3);}
+.res-miss-row{display:flex;justify-content:space-between;gap:10px;font-size:13px;padding:5px 0;border-bottom:1px dashed var(--border2);}
+.res-miss-row:last-of-type{border-bottom:none;}
+.res-miss-a{color:var(--gold);font-weight:600;}
+.res-miss-w{color:var(--text2);text-align:right;}
+.res-miss-btn{display:block;width:100%;margin-top:10px;padding:11px;border-radius:10px;border:1px solid var(--gold);background:transparent;color:var(--gold);font-weight:700;cursor:pointer;font-family:inherit;}
+.res-miss-btn:hover{background:rgba(212,168,67,.1);}
+
+/* Achievements modal */
+.ach-modal{position:fixed;inset:0;background:rgba(0,0,0,.78);display:none;align-items:center;justify-content:center;z-index:2100;padding:20px;}
+.ach-modal.show{display:flex;}
+.ach-modal-content{background:var(--bg);border:1px solid var(--gold);border-radius:14px;padding:20px;width:420px;max-width:100%;max-height:80vh;overflow-y:auto;}
+.ach-modal-content h3{margin:0 0 12px;color:var(--gold);font-size:18px;}
+.ach-row{display:flex;gap:12px;align-items:center;padding:9px 6px;border-radius:8px;}
+.ach-row.locked{opacity:.38;filter:grayscale(.8);}
+.ach-emoji{font-size:24px;}
+.ach-name{font-weight:700;font-size:14px;}
+.ach-desc{font-size:12px;color:var(--text3);}
+.ach-close{margin-top:12px;width:100%;padding:10px;border-radius:8px;border:1px solid var(--border2);background:transparent;color:inherit;cursor:pointer;font-family:inherit;}
+
 /* Report-word button + modal */
 .report-btn-sm {
   display: block;
@@ -924,8 +965,40 @@ h1,h2,h3,.syne{font-family:'Inter',sans-serif;}
     </div>
   </div>
 
+  <!-- Gamification strip: streak / level / daily goal / achievements -->
+  <div class="home-stats">
+    <div class="hs-chip" title="Days in a row you hit your daily goal">
+      <div class="hs-big">🔥 <span id="hsStreak">0</span></div>
+      <div class="hs-label">Day streak</div>
+    </div>
+    <div class="hs-chip" title="Earn XP with every answer">
+      <div class="hs-big">⭐ <span id="hsLevel">1</span></div>
+      <div class="hs-label">Level</div>
+      <div class="hs-bar"><div class="hs-bar-fill" id="hsXpFill"></div></div>
+    </div>
+    <div class="hs-chip" title="Answer 20 cards a day to keep the flame">
+      <div class="hs-big"><span id="hsGoalTxt">0/20</span></div>
+      <div class="hs-label">Today's goal</div>
+      <div class="hs-bar"><div class="hs-bar-fill" id="hsGoalFill"></div></div>
+    </div>
+    <div class="hs-chip clickable" onclick="openAchievements()" title="Your achievements">
+      <div class="hs-big">🏆 <span id="hsAch">0</span></div>
+      <div class="hs-label">Awards</div>
+    </div>
+  </div>
+
   <!-- CONFIG -->
   <div class="config-card">
+
+    <!-- One-tap resume of the last session setup -->
+    <button class="continue-btn" id="continueBtn" onclick="quickStart()">
+      <span class="continue-play">▶</span>
+      <span class="continue-main">
+        <span class="continue-title">Continue</span>
+        <span class="continue-desc" id="continueDesc"></span>
+      </span>
+      <span style="font-size:20px;opacity:.7">›</span>
+    </button>
 
     <!-- SONGS hero entry — its own paradigm, separate from quiz modes -->
     <div class="config-section">
@@ -1134,6 +1207,13 @@ h1,h2,h3,.syne{font-family:'Inter',sans-serif;}
       <div class="res-stat-val" id="resTotal">25</div>
       <div class="res-stat-label">Questions</div>
     </div>
+  </div>
+  <div class="res-banner" id="resLevelUp"></div>
+  <div class="res-banner" id="resBest"></div>
+  <div class="res-misses" id="resMisses">
+    <h4>Words you missed</h4>
+    <div id="resMissList"></div>
+    <button class="res-miss-btn" onclick="practiceMisses()">🔁 Practice my misses</button>
   </div>
   <div class="res-btns">
     <button class="btn-gold" onclick="startSession()">Play Again →</button>
@@ -1622,7 +1702,6 @@ const WORDS = [
   {e:"🎯",w:"to throw",a:"me gjujtë",p:"meh gyoo-eetuh",cat:"Verbs",pos:"Verb",tier:2},
   {e:"🤲",w:"to catch",a:"me kapë",p:"meh kahpuh",cat:"Verbs",pos:"Verb",tier:2},
   {e:"📋",w:"to order",a:"me porositë",p:"meh pohrohseetuh",cat:"Verbs",pos:"Verb",tier:2},
-,
   {e:"👩",w:"aunt - mother's sister",a:"teze",p:"tehzeh",cat:"People & Family",pos:"Noun",tier:2},
   {e:"👰",w:"bride",a:"nuse",p:"nooseh",cat:"People & Family",pos:"Noun",tier:2},
   {e:"👨‍👦",w:"brother",a:"vlla",p:"vlah",cat:"People & Family",pos:"Noun",tier:1},
@@ -1858,8 +1937,7 @@ const WORDS = [
   {e:"😖",w:"ugly",a:"i shëmtum",p:"ee shuhmtoom",cat:"Describing",pos:"Adjective",tier:2},
   {e:"🎨",w:"up",a:"nalt",p:"nahlt",cat:"Describing",pos:"Adjective",tier:2},
   {e:"💪",w:"warm",a:"ngrohtë",p:"ngrohhtuh",cat:"Describing",pos:"Adjective",tier:2},
-  {e:"🧒",w:"young",a:"i ri",p:"ee ree",cat:"Describing",pos:"Adjective",tier:1}
-,
+  {e:"🧒",w:"young",a:"i ri",p:"ee ree",cat:"Describing",pos:"Adjective",tier:1},
   {e:"🎉",w:"holiday",a:"festë",p:"fehstuh",cat:"Time & Calendar",pos:"Noun",tier:2},
   {e:"🎊",w:"celebration",a:"festim",p:"fehsteem",cat:"Time & Calendar",pos:"Noun",tier:2},
   {e:"🪗",w:"party",a:"ahengu",p:"ah-hehn-goo",cat:"Time & Calendar",pos:"Noun",tier:2},
@@ -1894,8 +1972,7 @@ const WORDS = [
   {e:"🪥",w:"toothbrush",a:"furçë dhambësh",p:"foor-chuh thahmbuhsh",cat:"Home & Things",pos:"Noun",tier:2},
   {e:"🧴",w:"toothpaste",a:"pastë dhambësh",p:"pahstuh thahmbuhsh",cat:"Home & Things",pos:"Noun",tier:2},
   {e:"🧹",w:"broom",a:"fshesë",p:"fshehsuh",cat:"Home & Things",pos:"Noun",tier:2},
-  {e:"🗑",w:"trash can",a:"kovë plehrash",p:"kohvuh plehrahsh",cat:"Home & Things",pos:"Noun",tier:2}
-,
+  {e:"🗑",w:"trash can",a:"kovë plehrash",p:"kohvuh plehrahsh",cat:"Home & Things",pos:"Noun",tier:2},
   {e:"🫵",w:"yours",a:"i yti",p:"ee ue-tee",cat:"Conversation",pos:"Pronoun",tier:1},
   {e:"🙋",w:"mine",a:"i jemi",p:"ee yeh-mee",cat:"Conversation",pos:"Pronoun",tier:1},
   {e:"❓",w:"if",a:"nëse",p:"nuh-seh",cat:"Conversation",pos:"Function Word",tier:1},
@@ -2017,7 +2094,6 @@ const PHRASES = [
   {e:"🦅",w:"Blood / family clan",a:"Fis",p:"fees",cat:"Conversation",pos:"Phrase",tier:2},
   {e:"🦅",w:"The mountains call",a:"Malet thërrasin",p:"mah-leht thuh-rah-seen",cat:"Conversation",pos:"Phrase",tier:2},
   {e:"🦅",w:"Albanian eagle",a:"Shqiponja shqiptare",p:"shch-ee-poh-nyah shch-eep-tah-reh",cat:"Conversation",pos:"Phrase",tier:2},
-,
   {e:"😴",w:"I am tired",a:"jam lodhë",p:"jahm lohthuh",cat:"Conversation",pos:"Phrase",tier:2},
   {e:"🎮",w:"I want to play",a:"du me lujt",p:"doo meh loojt",cat:"Conversation",pos:"Phrase",tier:2},
   {e:"😴",w:"I want to sleep",a:"du me fjet",p:"doo meh fjeht",cat:"Conversation",pos:"Phrase",tier:2},
@@ -2093,8 +2169,7 @@ const PHRASES = [
   {e:"⏳",w:"wait",a:"prit",p:"preet",cat:"Conversation",pos:"Phrase",tier:2},
   {e:"🎩",w:"what are you doing?",a:"çka po bon?",p:"chkah poh bohn?",cat:"Conversation",pos:"Phrase",tier:2},
   {e:"🎩",w:"what does this mean?",a:"çka dmth kjo?",p:"chkah dmth kjoh?",cat:"Conversation",pos:"Phrase",tier:2},
-  {e:"➡️",w:"with God",a:"me Zotin",p:"meh zohteen",cat:"Conversation",pos:"Phrase",tier:2}
-,
+  {e:"➡️",w:"with God",a:"me Zotin",p:"meh zohteen",cat:"Conversation",pos:"Phrase",tier:2},
   {e:"👤",w:"What is your name?",a:"Qysh quhesh?",p:"chuesh kueshesh",cat:"Conversation",pos:"Phrase",tier:2},
   {e:"👤",w:"Who are you?",a:"Kush je?",p:"koosh yeh",cat:"Conversation",pos:"Phrase",tier:2},
   {e:"👤",w:"Who is this?",a:"Kush asht ky",p:"koosh ahsht kue/kyoh",cat:"Conversation",pos:"Phrase",tier:2},
@@ -2116,8 +2191,7 @@ const PHRASES = [
   {e:"🔁",w:"Can you repeat?",a:"A mun e thua prap?",p:"ah moon eh thoo-ah prahp",cat:"Conversation",pos:"Phrase",tier:3},
   {e:"🗣",w:"What did you say?",a:"Çka the?",p:"chkah theh",cat:"Conversation",pos:"Phrase",tier:2},
   {e:"⏰",w:"Sorry I'm late",a:"M'fal, po jam vonë",p:"mfahl poh yahm vohnuh",cat:"Conversation",pos:"Phrase",tier:3},
-  {e:"🗣",w:"I don't speak well",a:"S'flas mirë",p:"sflahs meeruh",cat:"Conversation",pos:"Phrase",tier:2}
-,
+  {e:"🗣",w:"I don't speak well",a:"S'flas mirë",p:"sflahs meeruh",cat:"Conversation",pos:"Phrase",tier:2},
   {e:"👋",w:"Welcome",a:"Mirë se vjen",p:"meeruh seh vyen",cat:"Conversation",pos:"Phrase",tier:1},
   {e:"📞",w:"Hello (on the phone)",a:"Alo",p:"ah-loh",cat:"Conversation",pos:"Phrase",tier:2},
   {e:"👋",w:"Hi (informal)",a:"Tjeta",p:"tyeh-tah",cat:"Conversation",pos:"Phrase",tier:2},
@@ -2213,8 +2287,7 @@ const PHRASES = [
   {e:"🍷",w:"Cheers (with drinks)!",a:"N'shëndet!",p:"nshuhn-det",cat:"Food & Drink",pos:"Phrase",tier:2},
   {e:"🦅",w:"Albania is beautiful",a:"Shqipnia asht e bukur",p:"shcheep-nyah ahsht eh boo-koor",cat:"Conversation",pos:"Phrase",tier:3},
   {e:"🇦🇱",w:"I'm trying to learn Albanian",a:"Po mundohem me mësu shqip",p:"poh moon-doh-hem meh muh-soo shcheep",cat:"Conversation",pos:"Phrase",tier:3},
-  {e:"🎓",w:"Can I practice with you?",a:"A muj me praktiku me ty?",p:"ah mooy meh prahk-tee-koo meh tue",cat:"Conversation",pos:"Phrase",tier:3}
-,
+  {e:"🎓",w:"Can I practice with you?",a:"A muj me praktiku me ty?",p:"ah mooy meh prahk-tee-koo meh tue",cat:"Conversation",pos:"Phrase",tier:3},
   {e:"🙂",w:"→ I'm good, thanks",a:"Jam mirë, faliminderit",p:"yahm mee-ruh fah-lee-meen-deh-reet",cat:"Conversation",pos:"Phrase",tier:1},
   {e:"🙋",w:"How are you doing? (Gheg)",a:"Si kalon?",p:"see kah-lohn",cat:"Conversation",pos:"Phrase",tier:2},
   {e:"🙂",w:"→ I'm doing well",a:"Po kaloj mirë",p:"poh kah-loy mee-ruh",cat:"Conversation",pos:"Phrase",tier:2},
@@ -2416,7 +2489,6 @@ const SENTENCES = [
   {e:"💬",w:"We talk Albanian",a:"Na fol shqip",p:"nah fohl shcheep",cat:"Sentences",pos:"Sentence",tier:3},
   {e:"💬",w:"We learn a book",a:"Na mësoj libër",p:"nah muh-soy lee-buhr",cat:"Sentences",pos:"Sentence",tier:3},
   {e:"💬",w:"We learn Albanian",a:"Na mësoj shqip",p:"nah muh-soy shcheep",cat:"Sentences",pos:"Sentence",tier:3},
-,
   {e:"😴",w:"I slept",a:"Kam fjet",p:"kahm fyet",cat:"Sentences",pos:"Sentence",tier:2},
   {e:"😴",w:"You slept",a:"Ke fjet",p:"keh fyet",cat:"Sentences",pos:"Sentence",tier:2},
   {e:"😴",w:"He slept",a:"Ka fjet",p:"kah fyet",cat:"Sentences",pos:"Sentence",tier:2},
@@ -3387,6 +3459,7 @@ let S = {
   // Drives the smart queue (weak-word review, tier progression) and the
   // home "learned" counter. A word counts as LEARNED at r - w >= 3.
   strength: JSON.parse(localStorage.getItem('bf_strength')||'{}'),
+  misses: [],   // .a values missed THIS session — feeds the result-screen review
 };
 
 // One-time migration: users who practiced before the strength model existed
@@ -3405,7 +3478,9 @@ function recordResult(a, ok) {
   if (!a) return;
   const s = S.strength[a] || (S.strength[a] = {r: 0, w: 0});
   ok ? s.r++ : s.w++;
+  if (!ok && !S.misses.includes(a)) S.misses.push(a);
   if (!S.practiced.includes(a)) S.practiced.push(a);
+  gamifyAnswer(ok);
 }
 function strengthOf(a) { const s = S.strength[a]; return s ? s.r - s.w : 0; }
 function isLearned(a)  { return strengthOf(a) >= 3; }
@@ -3427,6 +3502,186 @@ function buildQueue(pool, count) {
   }
   if (q.length < count) q.push(...shuffle(learned).slice(0, count - q.length));
   return shuffle(q);
+}
+
+// ═══════════════════════════════
+// GAMIFICATION — daily streak, XP/levels, achievements, sounds
+// ═══════════════════════════════
+const DAILY_GOAL = 20;
+let G = JSON.parse(localStorage.getItem('bf_game') || 'null') || {
+  xp: 0, lastLevel: 1, bestPct: 0,
+  daily: { d: '', n: 0, streak: 0, lastGoal: '' },
+  stats: { sessions: 0, perfects: 0, songsDone: 0 },
+  earned: [],
+  lastConfig: null,
+};
+function saveG() { localStorage.setItem('bf_game', JSON.stringify(G)); }
+
+function dateStr(d) {
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+function todayStr()     { return dateStr(new Date()); }
+function yesterdayStr() { return dateStr(new Date(Date.now() - 864e5)); }
+
+// XP curve: level 2 at 100, then each level needs 50 more than the last.
+function xpThreshold(level) {
+  let t = 0;
+  for (let i = 1; i < level; i++) t += 100 + (i - 1) * 50;
+  return t;
+}
+function levelFromXp(xp) { let l = 1; while (xp >= xpThreshold(l + 1)) l++; return l; }
+
+// Called on every answer (from recordResult): XP, daily count, streak, sound.
+function gamifyAnswer(ok) {
+  const today = todayStr();
+  if (G.daily.d !== today) { G.daily.d = today; G.daily.n = 0; }
+  G.daily.n++;
+  if (G.daily.n === DAILY_GOAL && G.daily.lastGoal !== today) {
+    G.daily.streak = (G.daily.lastGoal === yesterdayStr()) ? G.daily.streak + 1 : 1;
+    G.daily.lastGoal = today;
+    showToast('🔥 Daily goal hit — day ' + G.daily.streak + ' streak!');
+    checkAchievements();
+  }
+  G.xp += ok ? 10 : 2;
+  saveG();
+  playFx(ok);
+}
+
+// Short synthesized feedback sounds — no audio files needed.
+let _fxCtx = null;
+function playFx(ok) {
+  try {
+    _fxCtx = _fxCtx || new (window.AudioContext || window.webkitAudioContext)();
+    const c = _fxCtx, t = c.currentTime;
+    const o = c.createOscillator(), g = c.createGain();
+    o.connect(g); g.connect(c.destination);
+    if (ok) {
+      o.frequency.setValueAtTime(660, t);
+      o.frequency.setValueAtTime(880, t + 0.08);
+      g.gain.setValueAtTime(0.07, t);
+      g.gain.exponentialRampToValueAtTime(0.001, t + 0.18);
+      o.start(t); o.stop(t + 0.2);
+    } else {
+      o.type = 'triangle';
+      o.frequency.setValueAtTime(180, t);
+      o.frequency.exponentialRampToValueAtTime(110, t + 0.15);
+      g.gain.setValueAtTime(0.08, t);
+      g.gain.exponentialRampToValueAtTime(0.001, t + 0.22);
+      o.start(t); o.stop(t + 0.25);
+    }
+  } catch (e) {}
+}
+
+// ── Achievements ──
+function countLearned() {
+  const POOL = WORDS.concat(PHRASES, SENTENCES);
+  return [...new Set(POOL.map(x => x.a))].filter(a => isLearned(a)).length;
+}
+const ACHIEVEMENTS = [
+  { id:'first_session', e:'🎉', name:'First Session',  desc:'Complete your first session',            test:() => G.stats.sessions >= 1 },
+  { id:'sessions_10',   e:'📚', name:'Ten Sessions',   desc:'Complete 10 sessions',                   test:() => G.stats.sessions >= 10 },
+  { id:'sessions_25',   e:'🏛', name:'Dedicated',      desc:'Complete 25 sessions',                   test:() => G.stats.sessions >= 25 },
+  { id:'streak_3',      e:'🔥', name:'3-Day Flame',    desc:'Hit your daily goal 3 days in a row',    test:() => G.daily.streak >= 3 },
+  { id:'streak_7',      e:'🌋', name:'Week of Fire',   desc:'Hit your daily goal 7 days in a row',    test:() => G.daily.streak >= 7 },
+  { id:'learned_25',    e:'🌱', name:'First 25',       desc:'Learn 25 words (3+ net correct each)',   test:() => countLearned() >= 25 },
+  { id:'learned_100',   e:'🦅', name:'Century',        desc:'Learn 100 words',                        test:() => countLearned() >= 100 },
+  { id:'learned_250',   e:'⛰', name:'Malsor Scholar', desc:'Learn 250 words',                        test:() => countLearned() >= 250 },
+  { id:'level_5',       e:'⭐', name:'Level 5',        desc:'Reach level 5',                          test:() => levelFromXp(G.xp) >= 5 },
+  { id:'song_done',     e:'🎵', name:'Songbird',       desc:'Finish a full song, snippet by snippet', test:() => G.stats.songsDone >= 1 },
+  { id:'perfect',       e:'💯', name:'Perfect Session',desc:'Score 100% on a session of 10+ cards',   test:() => G.stats.perfects >= 1 },
+];
+function checkAchievements() {
+  let delay = 300;
+  ACHIEVEMENTS.forEach(a => {
+    if (G.earned.includes(a.id)) return;
+    let hit = false;
+    try { hit = a.test(); } catch (e) {}
+    if (hit) {
+      G.earned.push(a.id);
+      setTimeout(() => showToast('🏆 ' + a.e + ' ' + a.name + '!'), delay);
+      delay += 1100;
+    }
+  });
+  saveG();
+}
+function openAchievements() {
+  const list = document.getElementById('achList');
+  list.innerHTML = '';
+  ACHIEVEMENTS.forEach(a => {
+    const earned = G.earned.includes(a.id);
+    const row = document.createElement('div');
+    row.className = 'ach-row' + (earned ? '' : ' locked');
+    row.innerHTML = '<span class="ach-emoji"></span><span><div class="ach-name"></div><div class="ach-desc"></div></span>';
+    row.querySelector('.ach-emoji').textContent = a.e;
+    row.querySelector('.ach-name').textContent  = a.name;
+    row.querySelector('.ach-desc').textContent  = a.desc;
+    list.appendChild(row);
+  });
+  document.getElementById('ach-modal').classList.add('show');
+}
+function closeAchievements() { document.getElementById('ach-modal').classList.remove('show'); }
+
+// ── Home stats strip + Continue button ──
+function updateHomeStats() {
+  const today = todayStr();
+  const alive = G.daily.lastGoal === today || G.daily.lastGoal === yesterdayStr();
+  document.getElementById('hsStreak').textContent = alive ? G.daily.streak : 0;
+  const lvl = levelFromXp(G.xp);
+  document.getElementById('hsLevel').textContent = lvl;
+  const base = xpThreshold(lvl), next = xpThreshold(lvl + 1);
+  document.getElementById('hsXpFill').style.width =
+    Math.min(100, Math.round((G.xp - base) / (next - base) * 100)) + '%';
+  const n = (G.daily.d === today) ? G.daily.n : 0;
+  document.getElementById('hsGoalTxt').textContent = Math.min(n, DAILY_GOAL) + '/' + DAILY_GOAL;
+  document.getElementById('hsGoalFill').style.width = Math.min(100, n / DAILY_GOAL * 100) + '%';
+  document.getElementById('hsAch').textContent = G.earned.length;
+  // Continue button reflects the last session config
+  const cb = document.getElementById('continueBtn');
+  if (G.lastConfig) {
+    const names = { flash:'Flashcards', mc:'Multiple Choice', listen:'Listen & ID',
+                    mix:'Mixed', cloze:'Fill in the Blank', sent:'Sentences', phr:'Phrases' };
+    const nCats = (G.lastConfig.cats || []).length;
+    document.getElementById('continueDesc').textContent =
+      (names[G.lastConfig.mode] || 'Session') + ' · ' + G.lastConfig.count + ' cards' +
+      (nCats ? ' · ' + nCats + ' categories' : '');
+    cb.style.display = 'flex';
+  } else {
+    cb.style.display = 'none';
+  }
+}
+
+// One-tap resume: restore the saved config into the UI, then start.
+function quickStart() {
+  const cfg = G.lastConfig;
+  if (!cfg) return;
+  const ids = { flash:'modeFlash', mc:'modeMC', listen:'modeListen', mix:'modeMix', cloze:'modeCloze' };
+  const modeEl = document.getElementById(ids[cfg.mode]);
+  if (modeEl) selectMode(cfg.mode, modeEl); else S.mode = cfg.mode;
+  document.querySelectorAll('.count-pill').forEach(p => {
+    if (parseInt(p.textContent, 10) === cfg.count) selectCount(cfg.count, p);
+  });
+  if (Array.isArray(cfg.cats) && cfg.cats.length) {
+    document.querySelectorAll('#catChips .cat-row').forEach(row => {
+      const cb = row.querySelector('input');
+      const want = cfg.cats.includes(row.dataset.cat);
+      if (cb.checked !== want) { cb.checked = want; cb.onchange(); }
+    });
+    if (S.selectedCats.length === 0) catsAll();
+  }
+  startSession();
+}
+
+// ── Review-misses session ──
+function practiceMisses() {
+  const POOL = WORDS.concat(PHRASES, SENTENCES);
+  const entries = (S.misses || []).map(a => POOL.find(x => x.a === a)).filter(Boolean);
+  if (!entries.length) { showToast('No misses to review — clean run!'); return; }
+  S.mode = 'flash'; S.listenMode = false; S.sentMode = false; S.songId = null;
+  S.queue = shuffle(entries);
+  S.idx = 0; S.correct = 0; S.streak = 0; S.misses = [];
+  document.getElementById('fcTitle').textContent = 'Review Misses';
+  showScreen('flashcard-screen');
+  renderFC();
 }
 
 // ═══════════════════════════════
@@ -3466,6 +3721,7 @@ function updateMilestone() {
   document.getElementById('wordTotal').textContent = distinct.length;
   const pct = Math.min(100, learned / distinct.length * 100);
   document.getElementById('milestoneProg').style.width = pct + '%';
+  updateHomeStats();
 }
 
 // ═══════════════════════════════
@@ -3593,6 +3849,11 @@ function startSession() {
   // categories — so picking "Greetings & Small Talk" includes phrases,
   // picking "Sentences" includes the sentence bank, etc. (Songs are
   // their own paradigm and aren't here.)
+  // Remember this setup for the home-screen Continue button.
+  G.lastConfig = { mode: S.mode, cats: [...S.selectedCats], count: S.count };
+  saveG();
+  S.misses = [];
+
   const POOL = WORDS.concat(PHRASES, SENTENCES);
   const filtered = POOL.filter(w => S.selectedCats.includes(w.cat));
   S.queue = buildQueue(filtered, S.count);
@@ -3788,6 +4049,7 @@ function startSong(songId) {
     songAudio: song.audio,
   }));
   S.idx = 0; S.correct = 0; S.streak = 0;
+  S.misses = [];
   S.fcFlipped = false;
   S.sentMode = true;  // hide the Gheg: prefix line, use a roomier layout
   document.getElementById('fcTitle').textContent = '🎵 ' + song.title;
@@ -4268,6 +4530,59 @@ function showResult() {
   document.getElementById('resCorrect').textContent = S.correct;
   document.getElementById('resPct').textContent = pct+'%';
   document.getElementById('resTotal').textContent = S.queue.length;
+
+  // ── Gamification: session stats, level-up, personal best, achievements ──
+  G.stats.sessions++;
+  if (S.queue.length >= 10 && S.correct === S.queue.length) G.stats.perfects++;
+  if (S.mode === 'song') G.stats.songsDone++;
+
+  const lvl = levelFromXp(G.xp);
+  const lvlBanner = document.getElementById('resLevelUp');
+  if (lvl > (G.lastLevel || 1)) {
+    lvlBanner.textContent = '⭐ Level up! You reached Level ' + lvl;
+    lvlBanner.style.display = 'block';
+    G.lastLevel = lvl;
+  } else {
+    lvlBanner.style.display = 'none';
+  }
+
+  const bestBanner = document.getElementById('resBest');
+  if (S.queue.length >= 10 && pct > (G.bestPct || 0)) {
+    G.bestPct = pct;
+    bestBanner.textContent = '🎉 New personal best — ' + pct + '%!';
+    bestBanner.style.display = 'block';
+  } else {
+    bestBanner.style.display = 'none';
+  }
+
+  // ── Missed-words review list ──
+  const missBox = document.getElementById('resMisses');
+  const missList = document.getElementById('resMissList');
+  if (S.misses.length) {
+    const POOL = WORDS.concat(PHRASES, SENTENCES);
+    missList.innerHTML = '';
+    S.misses.slice(0, 10).forEach(a => {
+      const entry = POOL.find(x => x.a === a);
+      const row = document.createElement('div');
+      row.className = 'res-miss-row';
+      row.innerHTML = '<span class="res-miss-a"></span><span class="res-miss-w"></span>';
+      row.querySelector('.res-miss-a').textContent = a;
+      row.querySelector('.res-miss-w').textContent = entry ? entry.w : '';
+      missList.appendChild(row);
+    });
+    if (S.misses.length > 10) {
+      const more = document.createElement('div');
+      more.style.cssText = 'font-size:11px;color:var(--text3);padding-top:6px';
+      more.textContent = '+ ' + (S.misses.length - 10) + ' more';
+      missList.appendChild(more);
+    }
+    missBox.style.display = 'block';
+  } else {
+    missBox.style.display = 'none';
+  }
+
+  saveG();
+  checkAchievements();
   showScreen('result-screen');
 }
 
@@ -4507,6 +4822,15 @@ window.addEventListener('load', async () => {
   <textarea name="note"></textarea>
   <input type="text" name="appVersion" />
 </form>
+
+<!-- Achievements modal -->
+<div id="ach-modal" class="ach-modal" onclick="if(event.target===this)closeAchievements()">
+  <div class="ach-modal-content">
+    <h3>🏆 Achievements</h3>
+    <div id="achList"></div>
+    <button class="ach-close" onclick="closeAchievements()">Close</button>
+  </div>
+</div>
 
 <!-- Report-word modal -->
 <div id="report-modal" class="report-modal" style="display:none" onclick="if(event.target===this)closeReport()">

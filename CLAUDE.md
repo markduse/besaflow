@@ -74,6 +74,18 @@ Always verify words are Gheg (northern Albanian / Kosovo / Malsor), NOT Tosk (st
 - Eagle animates with gold sparks overlay (`assets/eagle.png`)
 - `_lastMilestoneFired` prevents duplicate triggers; resets on wrong answer
 
+## Gamification & Learning Model (added June 2026)
+- Every entry carries `tier:1|2|3` (1 = ~190 core words, 2 = everyday, 3 = long phrases/sentences)
+- `localStorage.bf_strength` = per-word `{r: right, w: wrong}`; learned at r-w >= 3, weak when w > r
+- `buildQueue()` builds every session: ≤30% weak-word review, then unlearned lowest-tier-first, then learned padding
+- `localStorage.bf_game` = `{xp, lastLevel, bestPct, daily:{d,n,streak,lastGoal}, stats:{sessions,perfects,songsDone}, earned[], lastConfig}`
+- Daily goal = 20 answers (DAILY_GOAL); streak ticks when goal met on consecutive days
+- XP: +10 correct / +2 wrong; level thresholds via xpThreshold() (L2@100, then +50 per level)
+- 11 achievements in ACHIEVEMENTS; modal via openAchievements(); toasts on earn
+- Result screen: level-up + personal-best banners, missed-words list, practiceMisses() review session
+- playFx(ok) = WebAudio synth feedback sounds (no audio files)
+- DATA HYGIENE: when appending entries to WORDS/PHRASES/SENTENCES with scripts, never leave bare `,` lines — array elisions create undefined holes that crash .find()
+
 ## App State Object
 ```js
 let S = {
